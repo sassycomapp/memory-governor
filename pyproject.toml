@@ -1,0 +1,18 @@
+[project]
+name = "memory-governor"
+version = "0.1.0"
+description = "Governance control plane for GBrain durable memory writes"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+    "pydantic>=2.6",
+    "psycopg[binary]>=3.1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "schemathesis>=3.25"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
