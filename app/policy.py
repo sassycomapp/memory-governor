@@ -65,20 +65,38 @@ def check_scope(candidate: GovernedMemoryCandidate) -> bool:
 
 def decide_path(candidate: GovernedMemoryCandidate) -> Policy:
     """
-    The deterministic decision engine (Architecture §2). Returns a Policy
-    describing what SHOULD happen -- does NOT mutate the candidate or its
-    status. state_machine.py is the sole authority for status changes;
-    the caller applies policy.decision_path via apply_decision() (Phase 5).
+    The deterministic decision engine (Architecture §2, revised for the
+    two-outcome model -- §2.2). Returns a Policy describing what SHOULD
+    happen -- does NOT mutate the candidate or its status.
+    state_machine.py is the sole authority for status changes; the caller
+    applies policy.decision_path via apply_decision() (Phase 5).
+
+    TWO-OUTCOME MODEL (Scope Doc §3, Principle 2, revised): this function's
+    own automatic output is now limited to exactly two decision_path
+    values -- "auto_promote" or "needs_review". It never returns "reject"
+    or "quarantine" as its own decision -- those remain legal DecisionPath
+    values elsewhere (e.g. a developer's own resolution of a review item
+    via apply_decision()), but the engine itself no longer closes a
+    candidate out unilaterally. Where the prior version auto-quarantined
+    or auto-rejected, this version returns needs_review, carrying a
+    `classification` tag and a `recommended_action` -- a suggestion
+    attached to an open item, not a decision already made.
     """
     risk = compute_risk_level(candidate)
 
     if not check_provenance(candidate):
-        return Policy(risk_level=risk, decision_path="reject",
-                      requires_human_review=False, allowed_actions=["reject"])
+        return Policy(risk_level=risk, decision_path="needs_review",
+                      requires_human_review=True,
+                      classification="provenance_failure",
+                      recommended_action="reject",
+                      allowed_actions=["promote", "quarantine", "reject"])
 
     if not check_scope(candidate):
-        return Policy(risk_level=risk, decision_path="quarantine",
-                      requires_human_review=False, allowed_actions=["quarantine"])
+        return Policy(risk_level=risk, decision_path="needs_review",
+                      requires_human_review=True,
+                      classification="scope_invalid",
+                      recommended_action="quarantine",
+                      allowed_actions=["promote", "quarantine", "reject"])
 
     contradiction = candidate.contradiction
     if contradiction and contradiction.detected:
@@ -89,21 +107,32 @@ def decide_path(candidate: GovernedMemoryCandidate) -> Policy:
                 or contradiction.resolution == "manual_review"):
             return Policy(risk_level=risk, decision_path="needs_review",
                           requires_human_review=True,
+                          classification="unresolved_contradiction",
+                          recommended_action=None,
                           allowed_actions=["promote", "quarantine", "reject"])
-        # A genuinely resolved contradiction does not block further evaluation.
+        # A genuinely RESOLVED contradiction (e.g. resolution ==
+        # "closed_by_new_fact", a deliberate supersession -- Scope Doc §12)
+        # does NOT block further evaluation here.
 
     if risk == "high":
         return Policy(risk_level=risk, decision_path="needs_review",
                       requires_human_review=True,
+                      classification="high_risk_type",
+                      recommended_action=None,
                       allowed_actions=["promote", "quarantine", "reject"])
 
     if candidate.confidence.score < REVIEW_THRESHOLD:
-        return Policy(risk_level=risk, decision_path="quarantine",
-                      requires_human_review=False, allowed_actions=["quarantine"])
+        return Policy(risk_level=risk, decision_path="needs_review",
+                      requires_human_review=True,
+                      classification="low_confidence",
+                      recommended_action=None,
+                      allowed_actions=["promote", "quarantine", "reject"])
 
     if risk == "medium" and candidate.confidence.score < AUTO_PROMOTE_THRESHOLD:
         return Policy(risk_level=risk, decision_path="needs_review",
                       requires_human_review=True,
+                      classification="medium_risk_moderate_confidence",
+                      recommended_action=None,
                       allowed_actions=["promote", "quarantine", "reject"])
 
     return Policy(risk_level=risk, decision_path="auto_promote",

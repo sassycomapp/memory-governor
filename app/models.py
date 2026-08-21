@@ -65,6 +65,10 @@ class Policy(BaseModel):
     decision_path: DecisionPath
     requires_human_review: Optional[bool] = None
     allowed_actions: Optional[List[Action]] = None
+    classification: Optional[str] = None       # e.g. "low_confidence", "unresolved_contradiction" --
+                                                 # machine-readable reason tag for a review item
+    recommended_action: Optional[Action] = None  # a SUGGESTION shown on the review item,
+                                                   # never a decision the system has made (Scope Doc §3, Principle 2)
 
 
 class Contradiction(BaseModel):

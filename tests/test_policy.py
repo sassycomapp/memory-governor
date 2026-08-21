@@ -41,7 +41,8 @@ def _candidate(**overrides) -> GovernedMemoryCandidate:
 
 
 # ---------------------------------------------------------------------------
-# HIGH_RISK_TYPES — lock in the documented interpretation
+# HIGH_RISK_TYPES — lock in the documented interpretation. Unaffected by the
+# two-outcome model: these call compute_risk_level() directly, not decide_path().
 # ---------------------------------------------------------------------------
 
 class TestHighRiskTypesInterpretation:
@@ -62,7 +63,7 @@ class TestHighRiskTypesInterpretation:
 
 
 # ---------------------------------------------------------------------------
-# compute_risk_level — sharing elevation + confidence elevation
+# compute_risk_level — unaffected by the two-outcome model
 # ---------------------------------------------------------------------------
 
 class TestComputeRiskLevel:
@@ -96,7 +97,7 @@ class TestComputeRiskLevel:
 
 
 # ---------------------------------------------------------------------------
-# check_provenance
+# check_provenance / check_scope — unaffected, called directly
 # ---------------------------------------------------------------------------
 
 class TestCheckProvenance:
@@ -105,8 +106,6 @@ class TestCheckProvenance:
         assert check_provenance(c) is True
 
     def test_empty_writer_identity_fails(self):
-        # Pydantic's constr allows an empty string; this is exactly the
-        # bypass check_provenance exists to catch.
         c = _candidate(provenance=Provenance(
             source_type="user", source_ref="/tmp/x.md",
             writer_identity="", policy_version="v1",
@@ -120,10 +119,6 @@ class TestCheckProvenance:
         ))
         assert check_provenance(c) is False
 
-
-# ---------------------------------------------------------------------------
-# check_scope — Scope Doc §6 consistency rules
-# ---------------------------------------------------------------------------
 
 class TestCheckScope:
     def test_project_local_with_empty_shared_with_passes(self):
@@ -157,51 +152,59 @@ class TestCheckScope:
         assert check_scope(c) is False
 
     def test_shared_specific_with_all_literal_fails(self):
-        # "all" belongs to shared_all's contract, not shared_specific's.
         c = _candidate(scope=Scope(visibility="shared_specific", retention="long_term",
                                     owning_project="p1", shared_with=["all"]))
         assert check_scope(c) is False
 
 
 # ---------------------------------------------------------------------------
-# decide_path — full decision engine, ordered per Architecture §2
+# decide_path — REWRITTEN for the two-outcome model (Step 6.5.1).
+# Every case that used to auto-reject/auto-quarantine now asserts
+# needs_review + the correct classification + the correct recommended_action.
 # ---------------------------------------------------------------------------
 
 class TestDecidePathOrdering:
-    def test_missing_provenance_rejects_before_anything_else(self):
+    def test_missing_provenance_routes_to_review_with_reject_recommendation(self):
         c = _candidate(
             provenance=Provenance(source_type="user", source_ref="/tmp/x.md",
                                    writer_identity="", policy_version="v1"),
             confidence=Confidence(score=0.99, method="human_verified"),  # would otherwise auto-promote
         )
         result = decide_path(c)
-        assert result.decision_path == "reject"
-        assert result.allowed_actions == ["reject"]
+        assert result.decision_path == "needs_review"
+        assert result.classification == "provenance_failure"
+        assert result.recommended_action == "reject"
+        assert result.allowed_actions == ["promote", "quarantine", "reject"]
 
-    def test_bad_scope_quarantines_before_confidence_checked(self):
+    def test_bad_scope_routes_to_review_with_quarantine_recommendation(self):
         c = _candidate(
             scope=Scope(visibility="project_local", retention="long_term",
                         owning_project="p1", shared_with=["p2"]),  # inconsistent
             confidence=Confidence(score=0.99, method="human_verified"),
         )
         result = decide_path(c)
-        assert result.decision_path == "quarantine"
+        assert result.decision_path == "needs_review"
+        assert result.classification == "scope_invalid"
+        assert result.recommended_action == "quarantine"
 
     def test_high_risk_type_always_needs_review_even_with_perfect_confidence(self):
         c = _candidate(memory_type="policy", confidence=Confidence(score=1.0, method="human_verified"))
         result = decide_path(c)
         assert result.decision_path == "needs_review"
+        assert result.classification == "high_risk_type"
         assert result.requires_human_review is True
 
-    def test_below_review_threshold_quarantines(self):
+    def test_below_review_threshold_routes_to_review_with_no_recommendation(self):
         c = _candidate(confidence=Confidence(score=REVIEW_THRESHOLD - 0.01, method="model_based"))
         result = decide_path(c)
-        assert result.decision_path == "quarantine"
+        assert result.decision_path == "needs_review"
+        assert result.classification == "low_confidence"
+        assert result.recommended_action is None  # no single obvious call to make here, by design
 
-    def test_at_review_threshold_boundary_does_not_quarantine_on_confidence_alone(self):
+    def test_at_review_threshold_boundary_does_not_trigger_low_confidence_review(self):
         c = _candidate(confidence=Confidence(score=REVIEW_THRESHOLD, method="model_based"))
         result = decide_path(c)
-        assert result.decision_path != "quarantine"
+        assert result.classification != "low_confidence"
 
     def test_medium_risk_below_auto_promote_threshold_needs_review(self):
         c = _candidate(
@@ -211,35 +214,37 @@ class TestDecidePathOrdering:
         )
         result = decide_path(c)
         assert result.decision_path == "needs_review"
+        assert result.classification == "medium_risk_moderate_confidence"
 
     def test_low_risk_high_confidence_auto_promotes(self):
         c = _candidate(confidence=Confidence(score=0.95, method="human_verified"))
         result = decide_path(c)
         assert result.decision_path == "auto_promote"
         assert result.allowed_actions == ["promote"]
+        assert result.classification is None
+        assert result.recommended_action is None
 
 
 class TestDecidePathContradictionUniformity:
     """
-    This is what actually proves Architecture §10 test #2 -- the v1 defect
-    where contradiction-blocking was incorrectly gated to HIGH_RISK_TYPES
-    only. Every test below uses memory_type='fact' (deliberately NOT in
-    HIGH_RISK_TYPES) with otherwise-perfect confidence, to isolate that the
-    contradiction check alone is what blocks auto-promotion.
+    Unaffected by the two-outcome rewrite -- contradiction handling already
+    only ever returned needs_review/auto_promote, never reject/quarantine.
+    Kept as the permanent proof of Architecture §10 test #2.
     """
 
     def test_unresolved_contradiction_on_low_risk_fact_blocks_promotion(self):
         c = _candidate(
-            memory_type="fact",  # NOT high-risk
-            confidence=Confidence(score=0.99, method="human_verified"),  # would otherwise auto-promote
+            memory_type="fact",
+            confidence=Confidence(score=0.99, method="human_verified"),
             contradiction=Contradiction(detected=True, resolution=None),
         )
         result = decide_path(c)
         assert result.decision_path == "needs_review"
+        assert result.classification == "unresolved_contradiction"
 
     def test_manual_review_resolution_on_low_risk_fact_still_blocks(self):
         c = _candidate(
-            memory_type="preference",  # NOT high-risk
+            memory_type="preference",
             confidence=Confidence(score=0.99, method="human_verified"),
             contradiction=Contradiction(detected=True, resolution="manual_review"),
         )
@@ -251,12 +256,16 @@ class TestDecidePathContradictionUniformity:
             memory_type="fact",
             confidence=Confidence(score=0.99, method="human_verified"),
             contradiction=Contradiction(detected=True, cross_project=True,
-                                        resolution="closed_by_new_fact"),  # even a real resolution
+                                        resolution="closed_by_new_fact"),
         )
         result = decide_path(c)
         assert result.decision_path == "needs_review"
 
     def test_genuinely_resolved_non_cross_project_contradiction_does_not_block(self):
+        """
+        The blue-to-yellow case: a deliberate supersession, correctly
+        resolved, must NOT be blocked -- it promotes cleanly.
+        """
         c = _candidate(
             memory_type="fact",
             confidence=Confidence(score=0.95, method="human_verified"),
@@ -297,3 +306,67 @@ class TestDecidePathDoesNotMutate:
         original_policy = c.policy
         result = decide_path(c)
         assert result is not original_policy
+
+
+class TestTwoOutcomeModel:
+    """
+    New for Step 6.5.2 (Architecture §2.2, Scope Doc §3 Principle 2).
+    Directly proves the governing guarantee itself: across every scenario
+    that would have triggered an automatic reject or quarantine under the
+    old design, decide_path()'s own decision_path is NEVER anything other
+    than "auto_promote" or "needs_review". This is the test-level
+    counterpart to Step 6.5.1's source-inspection check -- proving the
+    behavior, not just the absence of the old literal strings in the code.
+    """
+
+    SCENARIOS = [
+        ("missing_provenance", dict(
+            provenance=Provenance(source_type="user", source_ref="/tmp/x.md",
+                                   writer_identity="", policy_version="v1"),
+        )),
+        ("bad_scope", dict(
+            scope=Scope(visibility="project_local", retention="long_term",
+                        owning_project="p1", shared_with=["p2"]),
+        )),
+        ("high_risk_type", dict(memory_type="policy")),
+        ("low_confidence", dict(confidence=Confidence(score=0.1, method="model_based"))),
+        ("unresolved_contradiction", dict(
+            contradiction=Contradiction(detected=True, resolution=None),
+        )),
+        ("cross_project_contradiction", dict(
+            contradiction=Contradiction(detected=True, cross_project=True,
+                                        resolution="closed_by_new_fact"),
+        )),
+        ("medium_risk_moderate_confidence", dict(
+            scope=Scope(visibility="shared_all", retention="permanent",
+                        owning_project="p1", shared_with=["all"]),
+            confidence=Confidence(score=0.7, method="model_based"),
+        )),
+        ("clean_candidate", dict(confidence=Confidence(score=0.95, method="human_verified"))),
+    ]
+
+    @pytest.mark.parametrize("label,overrides", SCENARIOS)
+    def test_decision_path_is_always_one_of_the_two_allowed_values(self, label, overrides):
+        c = _candidate(**overrides)
+        result = decide_path(c)
+        assert result.decision_path in ("auto_promote", "needs_review"), (
+            f"Scenario '{label}' produced decision_path='{result.decision_path}' -- "
+            f"decide_path() must NEVER return 'reject' or 'quarantine' automatically"
+        )
+
+    def test_recommended_action_is_never_treated_as_final_by_construction(self):
+        """
+        Documents the actual guarantee in code: recommended_action is a
+        plain Optional[Action] field on Policy, carrying only a suggestion.
+        Nothing in decide_path() ever sets `status` -- confirmed separately
+        by TestDecidePathDoesNotMutate -- so a recommendation can never
+        become a final disposition without passing through apply_decision()
+        (state_machine.py), which requires an explicit developer-driven call.
+        """
+        c = _candidate(
+            provenance=Provenance(source_type="user", source_ref="/tmp/x.md",
+                                   writer_identity="", policy_version="v1"),
+        )
+        result = decide_path(c)
+        assert result.recommended_action == "reject"
+        assert c.status == "proposed"  # unchanged -- the suggestion was never applied
