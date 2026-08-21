@@ -1,0 +1,51 @@
+{
+  "memory_id": "mem-reg-new-001",
+  "owning_project": "mb-3-cs-code",
+  "agent_id": null,
+  "session_id": null,
+  "scope": {
+    "visibility": "project_local",
+    "retention": "long_term",
+    "authority": null,
+    "owning_project": "mb-3-cs-code",
+    "shared_with": []
+  },
+  "memory_type": "fact",
+  "subject": null,
+  "content": {
+    "text": "Register test content.",
+    "structured": null
+  },
+  "provenance": {
+    "source_type": "user",
+    "source_ref": "/tmp/x.md",
+    "writer_identity": "w1",
+    "derived_from": null,
+    "policy_version": "v1",
+    "lineage_hash": null
+  },
+  "timestamps": {
+    "created_at": "2026-08-21T11:38:28.159801Z",
+    "updated_at": "2026-08-21T11:38:28.159804Z",
+    "valid_from": null,
+    "valid_until": null,
+    "valid_until_reason": null
+  },
+  "confidence": {
+    "score": 0.9,
+    "method": "human_verified"
+  },
+  "policy": {
+    "risk_level": "low",
+    "decision_path": "auto_promote",
+    "requires_human_review": null,
+    "allowed_actions": null,
+    "classification": null,
+    "recommended_action": null
+  },
+  "status": "promoted",
+  "supersedes_id": "mem-reg-old-001",
+  "contradiction": null,
+  "review": null,
+  "audit": null
+}

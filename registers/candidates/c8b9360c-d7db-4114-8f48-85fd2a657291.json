@@ -1,0 +1,58 @@
+{
+  "memory_id": "c8b9360c-d7db-4114-8f48-85fd2a657291",
+  "owning_project": "test-project-commit-push",
+  "agent_id": null,
+  "session_id": null,
+  "scope": {
+    "visibility": "project_local",
+    "retention": "long_term",
+    "authority": null,
+    "owning_project": "test-project-commit-push",
+    "shared_with": []
+  },
+  "memory_type": "fact",
+  "subject": null,
+  "content": {
+    "text": "Real commit and push test.",
+    "structured": null
+  },
+  "provenance": {
+    "source_type": "user",
+    "source_ref": "/tmp/x.md",
+    "writer_identity": "manual_submission",
+    "derived_from": null,
+    "policy_version": "v1",
+    "lineage_hash": "d177c0ea8599396433a404f05fff7da8ea9021c7e32b733dbcf68752b4cd8ffe"
+  },
+  "timestamps": {
+    "created_at": "2026-08-21T14:00:35.561565+02:00",
+    "updated_at": "2026-08-21T14:00:35.561565+02:00",
+    "valid_from": null,
+    "valid_until": null,
+    "valid_until_reason": null
+  },
+  "confidence": {
+    "score": 0.95,
+    "method": "human_verified"
+  },
+  "policy": {
+    "risk_level": "low",
+    "decision_path": "auto_promote",
+    "requires_human_review": false,
+    "allowed_actions": [
+      "promote"
+    ],
+    "classification": null,
+    "recommended_action": null
+  },
+  "status": "promoted",
+  "supersedes_id": null,
+  "contradiction": null,
+  "review": null,
+  "audit": {
+    "decision_by": "governor",
+    "decision_at": null,
+    "decision_reason": "policy engine: auto_promote",
+    "reviewer": null
+  }
+}
