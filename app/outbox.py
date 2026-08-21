@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List, Tuple
 
 from .models import GovernedMemoryCandidate
 from .storage import get_connection, _serialize
@@ -49,6 +49,7 @@ def emit_event(cur, event_type: str, memory_id: Optional[str], payload: dict) ->
 def insert_candidate_and_emit_event(
     candidate: GovernedMemoryCandidate,
     payload: Optional[dict] = None,
+    additional_events: Optional[List[Tuple[str, dict]]] = None,
 ) -> int:
     """
     Atomic: inserts a NEW candidate and a 'candidate_created' event in ONE
@@ -56,6 +57,14 @@ def insert_candidate_and_emit_event(
     what proves Architecture §4's "same transaction" requirement, which
     calling storage.insert_candidate() followed by a separate emit_event()
     call cannot guarantee (see design note above).
+
+    additional_events (Step 7.2): a list of (event_type, payload) pairs
+    emitted in the SAME transaction as the primary event -- e.g. a
+    'register_write' event alongside 'candidate_created' when the
+    candidate lands directly on 'promoted' (auto-promote path). Reuses
+    emit_event()'s existing cursor-sharing design; no new mechanism.
+    Returns the PRIMARY event's id; additional event ids are not returned
+    (the worker processes every unprocessed row regardless of return value).
     """
     data = _serialize(candidate)
     columns = ", ".join(data.keys())
@@ -70,6 +79,8 @@ def insert_candidate_and_emit_event(
                 cur, "candidate_created", candidate.memory_id,
                 payload or {"memory_id": candidate.memory_id, "owning_project": candidate.owning_project},
             )
+            for extra_type, extra_payload in (additional_events or []):
+                emit_event(cur, extra_type, candidate.memory_id, extra_payload)
         conn.commit()
     return event_id
 
@@ -78,6 +89,7 @@ def update_candidate_and_emit_event(
     candidate: GovernedMemoryCandidate,
     event_type: str,
     payload: Optional[dict] = None,
+    additional_events: Optional[List[Tuple[str, dict]]] = None,
 ) -> int:
     """
     Atomic: updates an EXISTING candidate (post state_machine.apply_decision())
@@ -85,6 +97,9 @@ def update_candidate_and_emit_event(
     with the transaction rolled back and NO event row created, if
     memory_id does not already exist -- mirroring storage.update_candidate()'s
     own existence guard, but atomically paired with the event this time.
+
+    additional_events (Step 7.2): see insert_candidate_and_emit_event()'s
+    docstring -- same mechanism, same reasoning.
     """
     data = _serialize(candidate)
     set_clause = ", ".join(f"{k} = %({k})s" for k in data.keys() if k != "memory_id")
@@ -101,6 +116,8 @@ def update_candidate_and_emit_event(
                 cur, event_type, candidate.memory_id,
                 payload or {"memory_id": candidate.memory_id, "status": candidate.status},
             )
+            for extra_type, extra_payload in (additional_events or []):
+                emit_event(cur, extra_type, candidate.memory_id, extra_payload)
         conn.commit()
     return event_id
 

@@ -363,6 +363,10 @@ def _submit_single_candidate(
         reviewer=None,
     )
 
+    additional_events = []
+    if updated.status == "promoted":
+        additional_events.append(("register_write", {"memory_id": updated.memory_id}))
+
     event_id = insert_candidate_and_emit_event(
         updated,
         payload={
@@ -370,6 +374,7 @@ def _submit_single_candidate(
             "owning_project": updated.owning_project,
             "status": updated.status,
         },
+        additional_events=additional_events or None,
     )
     append_audit_entry(decision, policy_version=req.policy_version)
 
@@ -528,9 +533,14 @@ def review_memory(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
 
+    additional_events = []
+    if updated.status == "promoted":
+        additional_events.append(("register_write", {"memory_id": updated.memory_id}))
+
     event_id = update_candidate_and_emit_event(
         updated, "review_resolved",
         payload={"memory_id": memory_id, "new_status": target_status, "reviewer": req.reviewer},
+        additional_events=additional_events or None,
     )
     append_audit_entry(decision, policy_version=candidate.provenance.policy_version)
 
