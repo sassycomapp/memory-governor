@@ -1,8 +1,9 @@
 import uuid
 from datetime import datetime, timezone
-from typing import List, Optional
+from typing import List, Optional, Any
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel, model_validator
 
 from .models import (
@@ -19,6 +20,7 @@ import os
 from pathlib import Path
 
 from .provenance import build_provenance
+from .rendering import render_review_queue
 
 # Step 6.1: explicit allowlist of directories a source_ref path submission
 # may read from. Resolved via Path.resolve() before comparison (below) to
@@ -373,20 +375,29 @@ from .audit import get_audit_history
 
 @router.get("/memory/review-queue")
 def get_review_queue(
+    format: str = "json",
     presented_credential: str = Depends(get_presented_credential),
-) -> List[dict]:
+) -> Any:
     """
     Architecture §3.2/§6: the data source for the OpenCode Q&A sheet.
-    Returns STRUCTURED data -- rendering into the "## Memory Review
-    Required" text format is OpenCode's job (Phase 10), not this
-    endpoint's. Every entry here has status == under_review by
-    construction (only decide_path's needs_review path sets that status),
-    so review should always be non-null -- but this is read defensively
-    in case a future code path ever reaches under_review without going
-    through submit_candidate()'s review-population fix (Part 3 of this step).
+    Default (format="json"): structured data, unchanged from before --
+    every existing caller keeps working exactly as-is, backward
+    compatible by construction, not by exception.
+
+    format="markdown" (Step 10.2): returns the fully pre-rendered "##
+    Memory Review Required" text via app/rendering.py -- the actual
+    formatting/template logic lives there, tested independently of
+    OpenCode, so any future consumer (OpenCode or otherwise) gets the
+    exact Architecture §6 convention without re-implementing it.
+
+    Every entry here has status == under_review by construction (only
+    decide_path's needs_review path sets that status), so review should
+    always be non-null -- but this is read defensively in case a future
+    code path ever reaches under_review without going through
+    submit_candidate()'s review-population fix (Step 5.1 Part 3).
     """
     candidates = list_candidates(status="under_review")
-    return [
+    entries = [
         {
             "memory_id": c.memory_id,
             "memory_type": c.memory_type,
@@ -398,6 +409,9 @@ def get_review_queue(
         }
         for c in candidates
     ]
+    if format == "markdown":
+        return PlainTextResponse(render_review_queue(entries))
+    return entries
 
 
 
