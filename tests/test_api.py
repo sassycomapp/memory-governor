@@ -424,3 +424,111 @@ class TestProjectOnboardingEndToEnd:
             assert memory_id in listed_ids
         finally:
             cleanup()
+
+
+class TestDormancyDataIntegrity:
+    """
+    Step 8.4. The Workflow's literal wording ("confirm exclusion from the
+    next scheduled sweep") has no real target -- Step 8.2 already
+    established no proactive sweep exists anywhere in this codebase.
+    Submission rejection while dormant, and normal resumption on
+    reactivation, are already covered by Step 8.2's own tests
+    (TestDormantProjectSubmissionGate) and are not re-tested here.
+
+    What genuinely hasn't been tested anywhere yet: that dormancy only
+    ever blocks NEW writes and never touches existing data. A candidate
+    promoted before a project goes dormant must remain fully intact and
+    fully retrievable while dormant -- dormancy is a write gate, not a
+    read gate and not an archival/deletion mechanism.
+    """
+
+    def test_dormant_flag_genuinely_persists_in_postgres(self, api_client, real_credential_headers):
+        from app.storage import insert_project, set_project_dormant, get_project, get_connection
+
+        project_id = "test-dormancy-flag-pytest"
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("DELETE FROM projects WHERE project_id = %s", (project_id,))
+            conn.commit()
+        insert_project(project_id, "Dormancy Flag Pytest")
+
+        try:
+            assert get_project(project_id)["dormant"] is False
+            set_project_dormant(project_id, True)
+            assert get_project(project_id)["dormant"] is True
+            set_project_dormant(project_id, False)
+            assert get_project(project_id)["dormant"] is False
+        finally:
+            with get_connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute("DELETE FROM projects WHERE project_id = %s", (project_id,))
+                conn.commit()
+
+    def test_existing_data_survives_dormancy_completely_untouched(self, api_client, real_credential_headers):
+        from app.storage import insert_project, set_project_dormant, get_connection
+
+        project_id = "test-dormancy-data-integrity-pytest"
+
+        def cleanup():
+            with get_connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        "DELETE FROM audit_log WHERE memory_id IN "
+                        "(SELECT memory_id FROM memory_candidates WHERE owning_project = %s)",
+                        (project_id,),
+                    )
+                    cur.execute(
+                        "DELETE FROM memory_events WHERE memory_id IN "
+                        "(SELECT memory_id FROM memory_candidates WHERE owning_project = %s)",
+                        (project_id,),
+                    )
+                    cur.execute("DELETE FROM memory_candidates WHERE owning_project = %s", (project_id,))
+                    cur.execute("DELETE FROM projects WHERE project_id = %s", (project_id,))
+                conn.commit()
+
+        cleanup()
+        try:
+            insert_project(project_id, "Dormancy Data Integrity Pytest")
+
+            # Promote a candidate WHILE the project is still active
+            submit_resp = api_client.post(
+                "/memory/candidate",
+                headers=real_credential_headers,
+                json={
+                    "owning_project": project_id, "visibility": "project_local", "retention": "long_term",
+                    "memory_type": "fact", "content": {"text": "Content that must survive dormancy."},
+                    "source_type": "user", "source_ref": "/tmp/dormancy-test.md", "policy_version": "v1",
+                    "confidence": {"score": 0.95, "method": "human_verified"},
+                },
+            )
+            assert submit_resp.status_code == 201
+            memory_id = submit_resp.json()["memory_id"]
+            assert submit_resp.json()["status"] == "promoted"
+
+            # NOW mark the project dormant
+            set_project_dormant(project_id, True)
+
+            # The existing candidate must remain fully intact and fully
+            # retrievable, byte-for-byte, while dormant -- direct retrieval
+            get_resp = api_client.get(f"/memory/{memory_id}", headers=real_credential_headers)
+            assert get_resp.status_code == 200
+            assert get_resp.json()["status"] == "promoted"
+            assert get_resp.json()["content"]["text"] == "Content that must survive dormancy."
+            assert get_resp.json()["owning_project"] == project_id
+
+            # ...and via project-filtered listing -- proving it's not just
+            # retrievable by ID but genuinely still part of the queryable set
+            list_resp = api_client.get(
+                f"/memory?owning_project={project_id}", headers=real_credential_headers
+            )
+            assert list_resp.status_code == 200
+            listed_ids = [c["memory_id"] for c in list_resp.json()]
+            assert memory_id in listed_ids
+
+            # Provenance/audit history must also remain fully intact and
+            # accessible while dormant -- not just the candidate row itself
+            prov_resp = api_client.get(f"/memory/{memory_id}/provenance", headers=real_credential_headers)
+            assert prov_resp.status_code == 200
+            assert len(prov_resp.json()) >= 1
+        finally:
+            cleanup()
