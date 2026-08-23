@@ -86,7 +86,7 @@ def resolve_source_ref_to_files(source_ref: str) -> List[Path]:
     )
     return files
 from .state_machine import initialize_candidate, apply_decision
-from .policy import decide_path
+from .policy import decide_path, can_project_view
 from .outbox import insert_candidate_and_emit_event
 from .audit import append_audit_entry
 
@@ -406,10 +406,21 @@ def get_review_queue(
 })
 def get_memory(
     memory_id: str,
+    requesting_project: Optional[str] = None,
     presented_credential: str = Depends(get_presented_credential),
 ) -> dict:
+    """
+    Step 9.1: requesting_project is optional and backward-compatible --
+    omitted, every candidate is visible (unchanged existing behavior).
+    When supplied, a candidate this project cannot see per Scope Doc §6
+    returns 404, uniformly with "doesn't exist" -- never a 403, so an
+    unauthorized project can never learn a candidate exists at all
+    (same existence-oracle reasoning as Step 6.1's path allowlist fix).
+    """
     candidate = get_candidate(memory_id)
     if candidate is None:
+        raise HTTPException(status_code=404, detail="Memory not found")
+    if not can_project_view(candidate, requesting_project):
         raise HTTPException(status_code=404, detail="Memory not found")
     return candidate.model_dump(mode="json")
 
@@ -421,11 +432,22 @@ def list_memory(
     owning_project: Optional[str] = None,
     status: Optional[str] = None,
     memory_type: Optional[str] = None,
+    requesting_project: Optional[str] = None,
     presented_credential: str = Depends(get_presented_credential),
 ) -> List[dict]:
+    """
+    Step 9.1: requesting_project is optional and backward-compatible --
+    omitted, every matching candidate is returned (unchanged existing
+    behavior). When supplied, results are narrowed to only what this
+    project can actually see per Scope Doc §6, applied AFTER the
+    existing owning_project/status/memory_type filters -- the two
+    combine naturally rather than conflicting.
+    """
     candidates = list_candidates(
         owning_project=owning_project, status=status, memory_type=memory_type
     )
+    if requesting_project is not None:
+        candidates = [c for c in candidates if can_project_view(c, requesting_project)]
     return [c.model_dump(mode="json") for c in candidates]
 
 

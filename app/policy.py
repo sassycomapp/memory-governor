@@ -1,3 +1,5 @@
+from typing import Optional
+
 from .models import (
     GovernedMemoryCandidate,
     Policy,
@@ -45,6 +47,34 @@ def check_provenance(candidate: GovernedMemoryCandidate) -> bool:
     """
     p = candidate.provenance
     return bool(p.source_type and p.source_ref and p.writer_identity and p.policy_version)
+
+
+def can_project_view(candidate: GovernedMemoryCandidate, requesting_project: Optional[str]) -> bool:
+    """
+    Step 9.1 (Scope Doc §6): read-time visibility resolution -- distinct
+    from check_scope() below, which only validates that a candidate's OWN
+    shared_with is internally consistent with its declared visibility at
+    WRITE time. This function answers a different question: given a
+    specific requesting project, can it actually see this candidate.
+
+    Backward-compatible by construction: if requesting_project is None
+    (no caller identity supplied), every candidate is visible -- this is
+    the exact behavior every existing caller and test already relies on,
+    unchanged. Visibility narrows only once a caller identifies itself.
+
+    A candidate is visible to a requesting project when it is the
+    project's own, OR shared_all, OR shared_specific with that project
+    explicitly listed. No other case grants visibility.
+    """
+    if requesting_project is None:
+        return True
+    if candidate.owning_project == requesting_project:
+        return True
+    if candidate.scope.visibility == "shared_all":
+        return True
+    if candidate.scope.visibility == "shared_specific":
+        return requesting_project in candidate.scope.shared_with
+    return False
 
 
 def check_scope(candidate: GovernedMemoryCandidate) -> bool:

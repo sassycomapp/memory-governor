@@ -532,3 +532,98 @@ class TestDormancyDataIntegrity:
             assert len(prov_resp.json()) >= 1
         finally:
             cleanup()
+
+
+class TestCrossProjectSharingVisibility:
+    """
+    Step 9.1 (Scope Doc §6): read-time visibility resolution via
+    requesting_project. Backward compatibility (no requesting_project
+    supplied) is implicitly covered by every other existing test in this
+    file, all of which pass with zero requesting_project and expect
+    unchanged, full visibility.
+    """
+
+    PROJECT_A = "test-9-1-pytest-a"
+    PROJECT_B = "test-9-1-pytest-b"
+    PROJECT_C = "test-9-1-pytest-c"
+
+    @pytest.fixture
+    def sharing_setup(self):
+        from app.storage import insert_project, get_connection
+
+        def cleanup():
+            with get_connection() as conn:
+                with conn.cursor() as cur:
+                    for p in (self.PROJECT_A, self.PROJECT_B, self.PROJECT_C):
+                        cur.execute("DELETE FROM audit_log WHERE memory_id IN (SELECT memory_id FROM memory_candidates WHERE owning_project = %s)", (p,))
+                        cur.execute("DELETE FROM memory_events WHERE memory_id IN (SELECT memory_id FROM memory_candidates WHERE owning_project = %s)", (p,))
+                        cur.execute("DELETE FROM memory_candidates WHERE owning_project = %s", (p,))
+                        cur.execute("DELETE FROM projects WHERE project_id = %s", (p,))
+                conn.commit()
+
+        cleanup()
+        for p in (self.PROJECT_A, self.PROJECT_B, self.PROJECT_C):
+            insert_project(p, p)
+        yield
+        cleanup()
+
+    def _create_shared_candidate(self, api_client, real_credential_headers):
+        resp = api_client.post("/memory/candidate", headers=real_credential_headers, json={
+            "owning_project": self.PROJECT_A, "visibility": "shared_specific", "retention": "long_term",
+            "memory_type": "fact", "content": {"text": "Shared with B only."},
+            "source_type": "user", "source_ref": "/tmp/x.md", "policy_version": "v1",
+            "confidence": {"score": 0.95, "method": "human_verified"},
+            "shared_with": [self.PROJECT_B],
+        })
+        assert resp.status_code == 201
+        return resp.json()["memory_id"]
+
+    def test_unlisted_project_gets_404_not_403_on_direct_fetch(
+        self, api_client, real_credential_headers, sharing_setup
+    ):
+        memory_id = self._create_shared_candidate(api_client, real_credential_headers)
+        resp = api_client.get(
+            f"/memory/{memory_id}?requesting_project={self.PROJECT_C}",
+            headers=real_credential_headers,
+        )
+        assert resp.status_code == 404
+
+    def test_listed_project_can_fetch_directly(
+        self, api_client, real_credential_headers, sharing_setup
+    ):
+        memory_id = self._create_shared_candidate(api_client, real_credential_headers)
+        resp = api_client.get(
+            f"/memory/{memory_id}?requesting_project={self.PROJECT_B}",
+            headers=real_credential_headers,
+        )
+        assert resp.status_code == 200
+
+    def test_unlisted_project_excluded_from_filtered_list(
+        self, api_client, real_credential_headers, sharing_setup
+    ):
+        memory_id = self._create_shared_candidate(api_client, real_credential_headers)
+        resp = api_client.get(
+            f"/memory?requesting_project={self.PROJECT_C}", headers=real_credential_headers
+        )
+        assert resp.status_code == 200
+        assert memory_id not in [c["memory_id"] for c in resp.json()]
+
+    def test_listed_project_included_in_filtered_list(
+        self, api_client, real_credential_headers, sharing_setup
+    ):
+        memory_id = self._create_shared_candidate(api_client, real_credential_headers)
+        resp = api_client.get(
+            f"/memory?requesting_project={self.PROJECT_B}", headers=real_credential_headers
+        )
+        assert resp.status_code == 200
+        assert memory_id in [c["memory_id"] for c in resp.json()]
+
+    def test_owner_always_sees_own_candidate_regardless_of_sharing_list(
+        self, api_client, real_credential_headers, sharing_setup
+    ):
+        memory_id = self._create_shared_candidate(api_client, real_credential_headers)
+        resp = api_client.get(
+            f"/memory/{memory_id}?requesting_project={self.PROJECT_A}",
+            headers=real_credential_headers,
+        )
+        assert resp.status_code == 200
