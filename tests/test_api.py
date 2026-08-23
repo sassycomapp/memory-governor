@@ -342,3 +342,85 @@ class TestDormantProjectSubmissionGate:
                     cur.execute("DELETE FROM memory_candidates WHERE owning_project = %s", (project_id,))
                     cur.execute("DELETE FROM projects WHERE project_id = %s", (project_id,))
                 conn.commit()
+
+
+class TestProjectOnboardingEndToEnd:
+    """
+    Step 8.3: register a brand-new project and submit a candidate scoped
+    to it, with NO code change -- the exit criterion this whole test
+    exists to prove. Every other test in this codebase has done exactly
+    this as a byproduct of testing something else, dozens of times since
+    Step 2.2; this is the one dedicated test where onboarding itself,
+    not something built on top of it, is the actual subject.
+    """
+
+    def test_freshly_registered_project_accepts_and_correctly_scopes_a_candidate(
+        self, api_client, real_credential_headers
+    ):
+        from app.storage import get_connection
+
+        project_id = "test-onboarding-e2e-pytest"
+
+        def cleanup():
+            with get_connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        "DELETE FROM audit_log WHERE memory_id IN "
+                        "(SELECT memory_id FROM memory_candidates WHERE owning_project = %s)",
+                        (project_id,),
+                    )
+                    cur.execute(
+                        "DELETE FROM memory_events WHERE memory_id IN "
+                        "(SELECT memory_id FROM memory_candidates WHERE owning_project = %s)",
+                        (project_id,),
+                    )
+                    cur.execute("DELETE FROM memory_candidates WHERE owning_project = %s", (project_id,))
+                    cur.execute("DELETE FROM projects WHERE project_id = %s", (project_id,))
+                conn.commit()
+
+        cleanup()
+        try:
+            # Register a genuinely new project through the real endpoint --
+            # not storage.insert_project() directly, since onboarding IS
+            # the thing under test here.
+            create_resp = api_client.post(
+                "/memory/projects",
+                headers=real_credential_headers,
+                json={"project_id": project_id, "display_name": "Onboarding E2E Pytest"},
+            )
+            assert create_resp.status_code == 201
+            assert create_resp.json()["dormant"] is False
+
+            # Submit a candidate scoped to it, immediately, with no
+            # intervening code change of any kind
+            submit_resp = api_client.post(
+                "/memory/candidate",
+                headers=real_credential_headers,
+                json={
+                    "owning_project": project_id, "visibility": "project_local", "retention": "long_term",
+                    "memory_type": "fact", "content": {"text": "Onboarding end-to-end test content."},
+                    "source_type": "user", "source_ref": "/tmp/onboarding-test.md", "policy_version": "v1",
+                    "confidence": {"score": 0.95, "method": "human_verified"},
+                },
+            )
+            assert submit_resp.status_code == 201
+            memory_id = submit_resp.json()["memory_id"]
+            assert submit_resp.json()["status"] == "promoted"
+
+            # Confirm the candidate is correctly, genuinely scoped to the
+            # new project -- not just that submission returned 201
+            get_resp = api_client.get(f"/memory/{memory_id}", headers=real_credential_headers)
+            assert get_resp.status_code == 200
+            assert get_resp.json()["owning_project"] == project_id
+
+            # Confirm it shows up correctly when filtering the list by
+            # this specific project -- proving real, queryable scoping,
+            # not just a field sitting unused on the row
+            list_resp = api_client.get(
+                f"/memory?owning_project={project_id}", headers=real_credential_headers
+            )
+            assert list_resp.status_code == 200
+            listed_ids = [c["memory_id"] for c in list_resp.json()]
+            assert memory_id in listed_ids
+        finally:
+            cleanup()
