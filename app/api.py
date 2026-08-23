@@ -293,11 +293,17 @@ def _submit_single_candidate(
     """
     from .storage import get_project
 
-    if not get_project(req.owning_project):
+    project = get_project(req.owning_project)
+    if not project:
         raise HTTPException(
             status_code=404,
             detail=f"Project '{req.owning_project}' does not exist -- register it via POST /memory/projects first",
 
+        )
+    if project["dormant"]:
+        raise HTTPException(
+            status_code=403,
+            detail=f"Project '{req.owning_project}' is dormant -- reactivate it via PATCH /memory/projects/{{project_id}} before submitting new candidates",
         )
 
     try:

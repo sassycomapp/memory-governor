@@ -276,3 +276,69 @@ class TestPathBasedIngestion:
             assert len(succeeded) == 2
         finally:
             api_module._submit_single_candidate = original_submit
+
+
+class TestDormantProjectSubmissionGate:
+    """
+    Step 8.2 (Scope Doc §8): a dormant project rejects new candidate
+    submissions with a clean 403, but existing state is never touched
+    and reactivation requires no special handling -- submissions simply
+    resume, since dormancy only ever gated new writes, never event
+    processing (see Step 8.2 design discussion for why event-processing
+    exclusion would have corrupted the outbox pattern instead).
+    """
+
+    def test_dormant_project_rejects_new_submission(self, api_client, real_credential_headers):
+        from app.storage import insert_project, set_project_dormant, get_connection
+
+        project_id = "test-dormant-gate-pytest"
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("DELETE FROM projects WHERE project_id = %s", (project_id,))
+            conn.commit()
+        insert_project(project_id, "Dormant Gate Pytest")
+        set_project_dormant(project_id, True)
+
+        try:
+            resp = api_client.post("/memory/candidate", headers=real_credential_headers, json={
+                "owning_project": project_id, "visibility": "project_local", "retention": "long_term",
+                "memory_type": "fact", "content": {"text": "should be rejected"},
+                "source_type": "user", "source_ref": "/tmp/x.md", "policy_version": "v1",
+                "confidence": {"score": 0.95, "method": "human_verified"},
+            })
+            assert resp.status_code == 403
+            assert "dormant" in resp.json()["detail"].lower()
+        finally:
+            with get_connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute("DELETE FROM projects WHERE project_id = %s", (project_id,))
+                conn.commit()
+
+    def test_reactivated_project_accepts_submission_with_no_special_handling(self, api_client, real_credential_headers):
+        from app.storage import insert_project, set_project_dormant, get_connection
+
+        project_id = "test-dormant-reactivate-pytest"
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("DELETE FROM projects WHERE project_id = %s", (project_id,))
+            conn.commit()
+        insert_project(project_id, "Dormant Reactivate Pytest")
+        set_project_dormant(project_id, True)
+        set_project_dormant(project_id, False)
+
+        try:
+            resp = api_client.post("/memory/candidate", headers=real_credential_headers, json={
+                "owning_project": project_id, "visibility": "project_local", "retention": "long_term",
+                "memory_type": "fact", "content": {"text": "should succeed after reactivation"},
+                "source_type": "user", "source_ref": "/tmp/x.md", "policy_version": "v1",
+                "confidence": {"score": 0.95, "method": "human_verified"},
+            })
+            assert resp.status_code == 201
+        finally:
+            with get_connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute("DELETE FROM audit_log WHERE memory_id IN (SELECT memory_id FROM memory_candidates WHERE owning_project = %s)", (project_id,))
+                    cur.execute("DELETE FROM memory_events WHERE memory_id IN (SELECT memory_id FROM memory_candidates WHERE owning_project = %s)", (project_id,))
+                    cur.execute("DELETE FROM memory_candidates WHERE owning_project = %s", (project_id,))
+                    cur.execute("DELETE FROM projects WHERE project_id = %s", (project_id,))
+                conn.commit()
