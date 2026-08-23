@@ -392,6 +392,8 @@ def get_review_queue(
             "memory_type": c.memory_type,
             "owning_project": c.owning_project,
             "risk_level": c.policy.risk_level,
+            "classification": c.policy.classification,
+            "recommended_action": c.policy.recommended_action,
             "review": c.review.model_dump(mode="json") if c.review else None,
         }
         for c in candidates
