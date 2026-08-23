@@ -627,3 +627,99 @@ class TestCrossProjectSharingVisibility:
             headers=real_credential_headers,
         )
         assert resp.status_code == 200
+
+
+class TestEndToEndReviewCycle:
+    """
+    Step 10.3: the full cycle Steps 10.1/10.2 individually proved pieces
+    of, but never end-to-end -- force needs_review, confirm it blocks,
+    confirm the Q&A sheet is fully populated, resolve it, and confirm
+    only AFTER resolution does the candidate reach a final state and
+    leave the review queue.
+    """
+
+    def test_full_review_cycle_from_submission_to_resolution(
+        self, api_client, real_credential_headers
+    ):
+        from app.storage import get_connection, insert_project
+
+        project_id = "test-10-3-e2e-pytest"
+
+        def cleanup():
+            with get_connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        "DELETE FROM audit_log WHERE memory_id IN "
+                        "(SELECT memory_id FROM memory_candidates WHERE owning_project = %s)",
+                        (project_id,),
+                    )
+                    cur.execute(
+                        "DELETE FROM memory_events WHERE memory_id IN "
+                        "(SELECT memory_id FROM memory_candidates WHERE owning_project = %s)",
+                        (project_id,),
+                    )
+                    cur.execute("DELETE FROM memory_candidates WHERE owning_project = %s", (project_id,))
+                    cur.execute("DELETE FROM projects WHERE project_id = %s", (project_id,))
+                conn.commit()
+
+        cleanup()
+        try:
+            insert_project(project_id, "E2E Review Cycle Pytest")
+
+            # 1. Force needs_review -- a policy-type submission is always high-risk
+            submit_resp = api_client.post(
+                "/memory/candidate",
+                headers=real_credential_headers,
+                json={
+                    "owning_project": project_id, "visibility": "project_local", "retention": "long_term",
+                    "memory_type": "policy", "content": {"text": "E2E review cycle test content."},
+                    "source_type": "user", "source_ref": "/tmp/x.md", "policy_version": "v1",
+                    "confidence": {"score": 0.95, "method": "human_verified"},
+                },
+            )
+            assert submit_resp.status_code == 201
+            memory_id = submit_resp.json()["memory_id"]
+            assert submit_resp.json()["status"] == "under_review"
+
+            # 2. Confirm it appears in the queue, fully populated -- both formats
+            queue_json = api_client.get("/memory/review-queue", headers=real_credential_headers)
+            entry = next(e for e in queue_json.json() if e["memory_id"] == memory_id)
+            assert entry["classification"] == "high_risk_type"
+            assert entry["review"]["recommendation"]
+            assert entry["review"]["validation"]
+            assert entry["review"]["ramifications"]
+
+            queue_md = api_client.get(
+                "/memory/review-queue?format=markdown", headers=real_credential_headers
+            )
+            assert memory_id in queue_md.text
+            assert "## Memory Review Required" in queue_md.text
+
+            # 3. Confirm the candidate is genuinely NOT in a final, approved
+            # state yet -- it exists and is retrievable (dormancy-style data
+            # integrity, not hidden), but its status is still pending
+            pending_check = api_client.get(f"/memory/{memory_id}", headers=real_credential_headers)
+            assert pending_check.status_code == 200
+            assert pending_check.json()["status"] == "under_review"
+
+            # 4. Resolve it
+            resolve_resp = api_client.post(
+                f"/memory/{memory_id}/review",
+                headers=real_credential_headers,
+                json={"decision": "promote", "reason": "e2e test approval", "reviewer": "dave"},
+            )
+            assert resolve_resp.status_code == 200
+            assert resolve_resp.json()["new_status"] == "promoted"
+
+            # 5. ONLY NOW is it in its final, approved state
+            final_check = api_client.get(f"/memory/{memory_id}", headers=real_credential_headers)
+            assert final_check.status_code == 200
+            assert final_check.json()["status"] == "promoted"
+
+            # 6. And it must have LEFT the review queue -- proving the
+            # queue reflects live state, not a stale snapshot
+            queue_after = api_client.get("/memory/review-queue", headers=real_credential_headers)
+            ids_after = [e["memory_id"] for e in queue_after.json()]
+            assert memory_id not in ids_after
+        finally:
+            cleanup()
