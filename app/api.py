@@ -8,7 +8,12 @@ from pydantic import BaseModel, model_validator
 from .models import (
     GovernedMemoryCandidate, Scope, Subject, Content, Timestamps,
     Confidence, Contradiction, Policy, SourceType, MemoryType,
-    Visibility, Retention, Authority, Method,
+    Visibility, Retention, Authority, Method, NoNulBytesModel,
+)
+from .projects import (
+    ProjectCreateRequest, ProjectDormantRequest,
+    create_project as _create_project,
+    update_project_dormant as _update_project_dormant,
 )
 import os
 from pathlib import Path
@@ -120,38 +125,7 @@ router = APIRouter(dependencies=[Depends(reject_nul_bytes_in_path_and_query)])
 CREDENTIAL_HEADER_NAME = "X-Governor-Credential"
 
 
-def _contains_nul_byte(value) -> bool:
-    """
-    Recursively checks strings, dict keys/values, and list/tuple items for
-    a NUL byte. Used by NoNulBytesModel below to close the gap the
-    router-wide path/query dependency explicitly does NOT cover (request
-    JSON bodies) -- found via Schemathesis fuzzing two separate times in
-    Step 5.3 (POST /memory/policy's "reason" field, and a nested field in
-    a stateful POST /memory/candidate test case).
-    """
-    if isinstance(value, str):
-        return "\x00" in value
-    if isinstance(value, dict):
-        return any(_contains_nul_byte(k) or _contains_nul_byte(v) for k, v in value.items())
-    if isinstance(value, (list, tuple)):
-        return any(_contains_nul_byte(item) for item in value)
-    return False
-
-
-class NoNulBytesModel(BaseModel):
-    """
-    Shared base for every request body model in this file. Recursively
-    rejects NUL bytes anywhere in the payload, including nested objects
-    (e.g. content.structured, proposed_thresholds) that a per-field string
-    check would miss. Raises a standard Pydantic ValidationError -- FastAPI
-    turns this into a 422, a code every endpoint already documents, so
-    this closes the gap with zero new response-code declarations needed.
-    """
-    @model_validator(mode="after")
-    def _reject_nul_bytes(self):
-        if _contains_nul_byte(self.model_dump()):
-            raise ValueError("Request fields cannot contain NUL bytes")
-        return self
+# NoNulBytesModel and _contains_nul_byte moved to models.py in Step 8.1
 
 DECISION_PATH_TO_STATUS = {
     "auto_promote": "promoted",
@@ -616,7 +590,7 @@ def supersede_memory(
     }
 
 
-from .storage import get_project, set_project_dormant, insert_project as storage_insert_project
+from .storage import get_project
 
 
 class QuarantineRequest(NoNulBytesModel):
@@ -662,11 +636,6 @@ def quarantine_memory(
     return {"memory_id": req.memory_id, "status": updated.status, "event_id": event_id}
 
 
-class ProjectCreateRequest(NoNulBytesModel):
-    project_id: str
-    display_name: str
-
-
 @router.post("/memory/projects", status_code=201, responses={
     400: {"description": "Malformed request body"},
     409: {"description": "Project already exists"},
@@ -675,29 +644,8 @@ def create_project(
     req: ProjectCreateRequest,
     presented_credential: str = Depends(get_presented_credential),
 ) -> dict:
-    """
-    Architecture §3.2 / Scope Doc §7: the new-project onboarding
-    mechanism. Deliberately thin -- storage.insert_project() already does
-    exactly what's needed (Step 2.2); this endpoint is a pure HTTP wrapper,
-    no additional business logic, matching Scope Doc §7's stated intent
-    that onboarding costs "no schema migration, no redeploy."
-
-    NUL-byte check happens FIRST, before ANY database call -- a Schemathesis
-    finding (Step 5.3) showed the original fix only guarded
-    storage.insert_project(), but get_project() (the duplicate check, called
-    BEFORE insert_project() in this same function) hits Postgres with the
-    identical unvalidated string one call earlier, reproducing the same 500
-    via a different code path. Validating at the true entry point closes
-    this for both calls at once, rather than chasing it function by function.
-    """
-    if get_project(req.project_id) is not None:
-        raise HTTPException(status_code=409, detail=f"Project '{req.project_id}' already exists")
-    storage_insert_project(req.project_id, req.display_name)
-    return {"project_id": req.project_id, "display_name": req.display_name, "dormant": False}
-
-
-class ProjectDormantRequest(NoNulBytesModel):
-    dormant: bool
+    """Architecture §3.2 / Scope Doc §7. Thin HTTP wrapper -- see projects.py (Step 8.1)."""
+    return _create_project(req)
 
 
 @router.patch("/memory/projects/{project_id}", responses={
@@ -709,13 +657,8 @@ def update_project_dormant(
     req: ProjectDormantRequest,
     presented_credential: str = Depends(get_presented_credential),
 ) -> dict:
-    """Architecture §3.2 / Scope Doc §8: the dormancy toggle."""
-    try:
-        set_project_dormant(project_id, req.dormant)
-    except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc))
-    project = get_project(project_id)
-    return {"project_id": project["project_id"], "dormant": project["dormant"]}
+    """Architecture §3.2 / Scope Doc §8. Thin HTTP wrapper -- see projects.py (Step 8.1)."""
+    return _update_project_dormant(project_id, req)
 
 
 class PolicyProposalRequest(NoNulBytesModel):

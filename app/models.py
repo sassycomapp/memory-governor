@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, constr, confloat
+from pydantic import BaseModel, model_validator, Field, constr, confloat
 from typing import Optional, Literal, List, Union
 from datetime import datetime
 
@@ -19,6 +19,39 @@ Action = Literal["promote", "quarantine", "reject", "supersede", "expire", "reco
 ValidUntilReason = Literal["superseded", "ttl_expired", "manual"]
 
 
+
+def _contains_nul_byte(value) -> bool:
+    """
+    Recursively checks strings, dict keys/values, and list/tuple items for
+    a NUL byte. Moved here from api.py in Step 8.1 -- projects.py needs
+    NoNulBytesModel too, and api.py importing from projects.py while
+    projects.py imported NoNulBytesModel from api.py would be circular.
+    models.py is the correct home: every other shared Pydantic building
+    block in this codebase already lives here.
+    """
+    if isinstance(value, str):
+        return "\x00" in value
+    if isinstance(value, dict):
+        return any(_contains_nul_byte(k) or _contains_nul_byte(v) for k, v in value.items())
+    if isinstance(value, (list, tuple)):
+        return any(_contains_nul_byte(item) for item in value)
+    return False
+
+
+class NoNulBytesModel(BaseModel):
+    """
+    Shared base for every request body model in this codebase. Recursively
+    rejects NUL bytes anywhere in the payload, including nested objects
+    (e.g. content.structured, proposed_thresholds) that a per-field string
+    check would miss. Raises a standard Pydantic ValidationError -- FastAPI
+    turns this into a 422, a code every endpoint already documents, so
+    this closes the gap with zero new response-code declarations needed.
+    """
+    @model_validator(mode="after")
+    def _reject_nul_bytes(self):
+        if _contains_nul_byte(self.model_dump()):
+            raise ValueError("Request fields cannot contain NUL bytes")
+        return self
 class Scope(BaseModel):
     visibility: Visibility
     retention: Retention
