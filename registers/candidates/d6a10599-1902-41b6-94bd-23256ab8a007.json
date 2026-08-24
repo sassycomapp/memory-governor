@@ -1,0 +1,58 @@
+{
+  "memory_id": "d6a10599-1902-41b6-94bd-23256ab8a007",
+  "owning_project": "test-gbrain-a-1787599943-1535",
+  "agent_id": null,
+  "session_id": null,
+  "scope": {
+    "visibility": "project_local",
+    "retention": "ephemeral",
+    "authority": null,
+    "owning_project": "test-gbrain-a-1787599943-1535",
+    "shared_with": []
+  },
+  "memory_type": "fact",
+  "subject": null,
+  "content": {
+    "text": "STEP-12-2-MARKER-1787599945: real end-to-end Step 12.2 content.",
+    "structured": null
+  },
+  "provenance": {
+    "source_type": "user",
+    "source_ref": "/tmp/step-12-2-test.md",
+    "writer_identity": "manual_submission",
+    "derived_from": null,
+    "policy_version": "v1",
+    "lineage_hash": "30be5a1622b29ad2ad280ff3dc101ad703d985ca8b5f022ad87ae81690a7ddab"
+  },
+  "timestamps": {
+    "created_at": "2026-08-24T21:32:25.094941+02:00",
+    "updated_at": "2026-08-24T21:32:25.094941+02:00",
+    "valid_from": null,
+    "valid_until": null,
+    "valid_until_reason": null
+  },
+  "confidence": {
+    "score": 0.95,
+    "method": "human_verified"
+  },
+  "policy": {
+    "risk_level": "low",
+    "decision_path": "auto_promote",
+    "requires_human_review": false,
+    "allowed_actions": [
+      "promote"
+    ],
+    "classification": null,
+    "recommended_action": null
+  },
+  "status": "promoted",
+  "supersedes_id": null,
+  "contradiction": null,
+  "review": null,
+  "audit": {
+    "decision_by": "governor",
+    "decision_at": null,
+    "decision_reason": "policy engine: auto_promote",
+    "reviewer": null
+  }
+}
