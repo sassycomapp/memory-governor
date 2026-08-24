@@ -348,6 +348,7 @@ def _submit_single_candidate(
     additional_events = []
     if updated.status == "promoted":
         additional_events.append(("register_write", {"memory_id": updated.memory_id}))
+        additional_events.append(("gbrain_write", {"memory_id": updated.memory_id}))
 
     event_id = insert_candidate_and_emit_event(
         updated,
@@ -568,6 +569,7 @@ def review_memory(
     additional_events = []
     if updated.status == "promoted":
         additional_events.append(("register_write", {"memory_id": updated.memory_id}))
+        additional_events.append(("gbrain_write", {"memory_id": updated.memory_id}))
         if updated.memory_type == "policy":
             # Step 11.3: no-ops (returns False) unless this candidate
             # genuinely carries a structured proposal -- a self-healing

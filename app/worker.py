@@ -10,6 +10,7 @@ from .storage import get_connection
 from .retry import with_retry
 from .storage import get_candidate
 from .registers import register_candidate, commit_and_push_register_changes
+from .gbrain import remember_candidate
 
 logger = logging.getLogger("memory_governor.worker")
 
@@ -58,6 +59,31 @@ def _register_write_handler(event: dict) -> None:
     )
 
 
+def _gbrain_write_handler(event: dict) -> None:
+    """
+    Real handler for Step 12.1 -- replaces the Phase 4.2 no-op. Same
+    shape as _register_write_handler above. Fetches the current
+    candidate state and writes it into GBrain via remember_candidate()
+    (app/gbrain.py) -- switching to the candidate's owning_project as
+    the active GBrain source first, then calling remember.
+
+    SourceNotFoundError (a candidate's owning_project has no matching
+    GBrain source) and subprocess.CalledProcessError (any other gbrain
+    CLI failure) both propagate up uncaught here -- with_retry() (Step
+    4.3) is what catches these, applies backoff, and eventually marks
+    the event permanently_failed after 5 attempts, exactly the same
+    pattern already proven for register_write's git failures (Step 7.3).
+    """
+    candidate = get_candidate(event["memory_id"])
+    if candidate is None:
+        raise ValueError(f"gbrain_write event references memory_id '{event['memory_id']}' which does not exist")
+    gbrain_response = remember_candidate(candidate)
+    logger.info(
+        "worker: event_id=%s wrote memory_id=%s into GBrain source=%s (%s)",
+        event["event_id"], event["memory_id"], candidate.owning_project, gbrain_response,
+    )
+
+
 HANDLER_REGISTRY: Dict[str, Callable[[dict], None]] = {
     "candidate_created": _noop_handler,
     "contradiction_detected": _noop_handler,
@@ -67,7 +93,7 @@ HANDLER_REGISTRY: Dict[str, Callable[[dict], None]] = {
     "expiry_due": _noop_handler,
     "scheduled_consolidation": _noop_handler,
     "register_write": _register_write_handler,
-    "gbrain_write": _noop_handler,
+    "gbrain_write": _gbrain_write_handler,
 }
 
 
