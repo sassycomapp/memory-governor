@@ -25,6 +25,28 @@ REVIEW_THRESHOLD = 0.65
 AUTO_PROMOTE_THRESHOLD = 0.85
 
 
+def get_active_thresholds() -> dict:
+    """
+    Step 11.3: reads REVIEW_THRESHOLD/AUTO_PROMOTE_THRESHOLD from the
+    currently active policy_versions row -- closing a real gap flagged
+    since Phase 1 (the module constants above were never actually
+    consulted; policy_versions has sat empty and unread since the table
+    was created in Step 2.1). Falls back to the hardcoded defaults above
+    when no active row exists yet -- the correct bootstrap behavior for
+    a fresh install that has never had a policy change approved.
+    """
+    from .storage import get_connection
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT thresholds FROM policy_versions WHERE active = TRUE LIMIT 1")
+            row = cur.fetchone()
+
+    if row is None:
+        return {"REVIEW_THRESHOLD": REVIEW_THRESHOLD, "AUTO_PROMOTE_THRESHOLD": AUTO_PROMOTE_THRESHOLD}
+    return row["thresholds"]
+
+
 def compute_risk_level(candidate: GovernedMemoryCandidate) -> RiskLevel:
     if candidate.memory_type in HIGH_RISK_TYPES:
         return "high"
@@ -151,14 +173,15 @@ def decide_path(candidate: GovernedMemoryCandidate) -> Policy:
                       recommended_action=None,
                       allowed_actions=["promote", "quarantine", "reject"])
 
-    if candidate.confidence.score < REVIEW_THRESHOLD:
+    active_thresholds = get_active_thresholds()
+    if candidate.confidence.score < active_thresholds["REVIEW_THRESHOLD"]:
         return Policy(risk_level=risk, decision_path="needs_review",
                       requires_human_review=True,
                       classification="low_confidence",
                       recommended_action=None,
                       allowed_actions=["promote", "quarantine", "reject"])
 
-    if risk == "medium" and candidate.confidence.score < AUTO_PROMOTE_THRESHOLD:
+    if risk == "medium" and candidate.confidence.score < active_thresholds["AUTO_PROMOTE_THRESHOLD"]:
         return Policy(risk_level=risk, decision_path="needs_review",
                       requires_human_review=True,
                       classification="medium_risk_moderate_confidence",
@@ -167,3 +190,53 @@ def decide_path(candidate: GovernedMemoryCandidate) -> Policy:
 
     return Policy(risk_level=risk, decision_path="auto_promote",
                   requires_human_review=False, allowed_actions=["promote"])
+
+
+def apply_approved_policy_change(candidate, reviewer: str) -> bool:
+    """
+    Step 11.3 (Architecture §7 point 4): the approved-change flow. Called
+    from review_memory() (api.py) immediately after a policy-type
+    candidate is approved and promoted. Runs SYNCHRONOUSLY, in the same
+    request -- deliberately NOT the async outbox pattern used for
+    register_write/gbrain_write. Those are async because they talk to
+    external systems (git, GBrain) with real latency and real failure
+    modes worth retrying. This is a plain, local Postgres write with no
+    external dependency -- if it failed silently and async, a developer
+    would believe they'd approved a real change that never actually took
+    effect, which is worse than a loud, immediate error here.
+
+    Only acts if the candidate genuinely carries a structured proposal
+    (content.structured has BOTH proposed_policy_version and
+    proposed_thresholds) -- this is what distinguishes a real,
+    human-originated proposal (propose_policy(), Step 5.1) from a
+    self-healing observation (Step 11.2), which is deliberately
+    narrative-only and must never auto-apply a specific threshold change
+    on its own. Returns False (no-op) if the structured fields aren't
+    present -- not an error, just "nothing to apply here."
+
+    The register mirror (Architecture §7 point 4's other requirement) is
+    NOT duplicated here -- the candidate's own promotion already fires
+    register_write (Phase 7), which captures this candidate's full
+    content.structured (the real proposed thresholds) in its JSON
+    payload automatically. No second, separate register file needed.
+    """
+    structured = candidate.content.structured or {}
+    proposed_version = structured.get("proposed_policy_version")
+    proposed_thresholds = structured.get("proposed_thresholds")
+
+    if not proposed_version or not proposed_thresholds:
+        return False
+
+    from .storage import get_connection
+    import json as _json
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("UPDATE policy_versions SET active = FALSE WHERE active = TRUE")
+            cur.execute(
+                "INSERT INTO policy_versions (policy_version, thresholds, active, approved_by) "
+                "VALUES (%s, %s, TRUE, %s)",
+                (proposed_version, _json.dumps(proposed_thresholds), reviewer),
+            )
+        conn.commit()
+    return True

@@ -723,3 +723,155 @@ class TestEndToEndReviewCycle:
             assert memory_id not in ids_after
         finally:
             cleanup()
+
+
+
+class TestPolicyUpdatePath:
+    """
+    Step 11.3 (Architecture §7 point 4). Proven live in Step 11.3's own
+    verification; this file makes that proof permanent.
+    """
+
+    TEST_PROJECT = "test-11-3-pytest"
+
+    def _cleanup(self):
+        from app.storage import get_connection
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "DELETE FROM audit_log WHERE memory_id IN "
+                    "(SELECT memory_id FROM memory_candidates WHERE owning_project = %s)",
+                    (self.TEST_PROJECT,),
+                )
+                cur.execute(
+                    "DELETE FROM memory_events WHERE memory_id IN "
+                    "(SELECT memory_id FROM memory_candidates WHERE owning_project = %s)",
+                    (self.TEST_PROJECT,),
+                )
+                cur.execute("DELETE FROM memory_candidates WHERE owning_project = %s", (self.TEST_PROJECT,))
+                cur.execute("DELETE FROM projects WHERE project_id = %s", (self.TEST_PROJECT,))
+                cur.execute("DELETE FROM policy_versions WHERE policy_version = %s", ("v2-pytest",))
+            conn.commit()
+
+    def test_approved_proposal_creates_active_row_and_deactivates_previous(
+        self, api_client, real_credential_headers
+    ):
+        from app.storage import insert_project, get_connection
+
+        self._cleanup()
+        try:
+            insert_project(self.TEST_PROJECT, "Policy Update Pytest")
+
+            propose_resp = api_client.post("/memory/policy", headers=real_credential_headers, json={
+                "owning_project": self.TEST_PROJECT,
+                "proposed_policy_version": "v2-pytest",
+                "proposed_thresholds": {"REVIEW_THRESHOLD": 0.5, "AUTO_PROMOTE_THRESHOLD": 0.75},
+                "reason": "pytest coverage",
+                "current_policy_version": "v1",
+            })
+            assert propose_resp.status_code == 201
+            memory_id = propose_resp.json()["memory_id"]
+
+            resolve_resp = api_client.post(f"/memory/{memory_id}/review", headers=real_credential_headers, json={
+                "decision": "promote", "reason": "pytest approval", "reviewer": "pytest-reviewer",
+            })
+            assert resolve_resp.status_code == 200
+
+            with get_connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        "SELECT active, approved_by, thresholds FROM policy_versions WHERE policy_version = %s",
+                        ("v2-pytest",),
+                    )
+                    new_row = cur.fetchone()
+                    cur.execute("SELECT COUNT(*) AS n FROM policy_versions WHERE active = TRUE")
+                    active_count = cur.fetchone()["n"]
+
+            assert new_row is not None
+            assert new_row["active"] is True
+            assert new_row["approved_by"] == "pytest-reviewer"
+            assert new_row["thresholds"] == {"REVIEW_THRESHOLD": 0.5, "AUTO_PROMOTE_THRESHOLD": 0.75}
+            assert active_count == 1
+        finally:
+            self._cleanup()
+
+    def test_decide_path_actually_consults_new_active_thresholds(
+        self, api_client, real_credential_headers
+    ):
+        """
+        Not just that the row was written -- that decide_path() genuinely
+        changes its live behavior as a result, closing the gap flagged
+        since Phase 1 (REVIEW_THRESHOLD/AUTO_PROMOTE_THRESHOLD were
+        module constants, never actually read from policy_versions).
+        """
+        from app.storage import insert_project, get_connection
+        from app.policy import get_active_thresholds
+
+        self._cleanup()
+        try:
+            insert_project(self.TEST_PROJECT, "Policy Update Pytest")
+
+            propose_resp = api_client.post("/memory/policy", headers=real_credential_headers, json={
+                "owning_project": self.TEST_PROJECT,
+                "proposed_policy_version": "v2-pytest",
+                "proposed_thresholds": {"REVIEW_THRESHOLD": 0.99, "AUTO_PROMOTE_THRESHOLD": 0.999},
+                "reason": "pytest coverage",
+                "current_policy_version": "v1",
+            })
+            memory_id = propose_resp.json()["memory_id"]
+            api_client.post(f"/memory/{memory_id}/review", headers=real_credential_headers, json={
+                "decision": "promote", "reason": "pytest approval", "reviewer": "pytest-reviewer",
+            })
+
+            active = get_active_thresholds()
+            assert active["REVIEW_THRESHOLD"] == 0.99
+            assert active["AUTO_PROMOTE_THRESHOLD"] == 0.999
+        finally:
+            self._cleanup()
+
+    def test_self_healing_candidate_never_triggers_policy_write(
+        self, api_client, real_credential_headers
+    ):
+        """
+        The core safety property this step depends on: a Step 11.2
+        self-healing observation (narrative-only, no structured proposal)
+        must NEVER auto-apply a policy change on approval, even if
+        approved. Only a genuinely structured proposal (propose_policy())
+        may ever write to policy_versions.
+        """
+        from app.storage import insert_project, get_connection
+        from app.self_healing import submit_detected_pattern
+
+        self._cleanup()
+        try:
+            insert_project(self.TEST_PROJECT, "Policy Update Pytest")
+
+            fake_pattern = {
+                "memory_type": "fact",
+                "owning_project": self.TEST_PROJECT,
+                "classification": "low_confidence",
+                "total_reviewed": 8,
+                "unfavorable_count": 6,
+                "rate": 0.75,
+            }
+            result = submit_detected_pattern(fake_pattern)
+            memory_id = result["memory_id"]
+
+            with get_connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute("SELECT COUNT(*) AS n FROM policy_versions")
+                    before_count = cur.fetchone()["n"]
+
+            resolve_resp = api_client.post(f"/memory/{memory_id}/review", headers=real_credential_headers, json={
+                "decision": "promote", "reason": "pytest approval", "reviewer": "pytest-reviewer",
+            })
+            assert resolve_resp.status_code == 200
+
+            with get_connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute("SELECT COUNT(*) AS n FROM policy_versions")
+                    after_count = cur.fetchone()["n"]
+
+            assert before_count == after_count
+        finally:
+            self._cleanup()

@@ -88,7 +88,7 @@ def resolve_source_ref_to_files(source_ref: str) -> List[Path]:
     )
     return files
 from .state_machine import initialize_candidate, apply_decision
-from .policy import decide_path, can_project_view
+from .policy import decide_path, can_project_view, apply_approved_policy_change
 from .outbox import insert_candidate_and_emit_event
 from .audit import append_audit_entry
 
@@ -554,6 +554,11 @@ def review_memory(
     additional_events = []
     if updated.status == "promoted":
         additional_events.append(("register_write", {"memory_id": updated.memory_id}))
+        if updated.memory_type == "policy":
+            # Step 11.3: no-ops (returns False) unless this candidate
+            # genuinely carries a structured proposal -- a self-healing
+            # observation (Step 11.2) never triggers this, by design.
+            apply_approved_policy_change(updated, req.reviewer)
 
     event_id = update_candidate_and_emit_event(
         updated, "review_resolved",
