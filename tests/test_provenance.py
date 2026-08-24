@@ -78,8 +78,34 @@ class TestBuildProvenanceHasNoWriterIdentityParameter:
 
 class TestResolveWriterIdentity:
     def test_real_credential_env_vars_are_registered(self):
+        """
+        Extended in Step 13.1 to cover all four real writer credentials --
+        this test previously only checked the original two, silently
+        never extended when self_healing was added in Step 11.2. Closed
+        both gaps together rather than repeat the same incompleteness.
+        """
         assert "MEMORY_GOVERNOR_WRITER_GBRAIN_DREAMING" in _CREDENTIAL_ENV_MAP
         assert "MEMORY_GOVERNOR_WRITER_MANUAL_SUBMISSION" in _CREDENTIAL_ENV_MAP
+        assert "MEMORY_GOVERNOR_WRITER_SELF_HEALING" in _CREDENTIAL_ENV_MAP
+        assert "MEMORY_GOVERNOR_WRITER_PDLF_STEP_SYNC" in _CREDENTIAL_ENV_MAP
+
+    def test_pdlf_step_sync_credential_resolves_to_correct_identity(self):
+        """
+        Step 13.1's actual exit criteria: a distinct writer credential,
+        genuinely resolving to its own identity, not colliding with any
+        of the three other real writer credentials.
+        """
+        import os
+        real_cred = os.environ["MEMORY_GOVERNOR_WRITER_PDLF_STEP_SYNC"]
+        assert resolve_writer_identity(real_cred) == "pdlf_step_sync"
+
+        other_env_vars = [
+            "MEMORY_GOVERNOR_WRITER_GBRAIN_DREAMING",
+            "MEMORY_GOVERNOR_WRITER_MANUAL_SUBMISSION",
+            "MEMORY_GOVERNOR_WRITER_SELF_HEALING",
+        ]
+        for var in other_env_vars:
+            assert os.environ[var] != real_cred, f"credential collision with {var}"
 
     def test_fake_credential_raises_permission_error(self):
         with pytest.raises(PermissionError):
