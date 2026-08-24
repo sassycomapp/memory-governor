@@ -12,6 +12,7 @@ from .storage import get_candidate
 _CREDENTIAL_ENV_MAP = {
     "MEMORY_GOVERNOR_WRITER_GBRAIN_DREAMING": "gbrain_dreaming",
     "MEMORY_GOVERNOR_WRITER_MANUAL_SUBMISSION": "manual_submission",
+    "MEMORY_GOVERNOR_WRITER_SELF_HEALING": "self_healing",
 }
 
 

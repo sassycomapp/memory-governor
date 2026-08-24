@@ -12,8 +12,11 @@ permitted to act on that noticing without the same human gate every
 other high-risk candidate goes through." -- Architecture §7.
 """
 from typing import List
+import os
 
 from .storage import get_connection
+from .api import submit_candidate, CandidateSubmissionRequest
+from .models import Content, Confidence
 
 # Conservative by design (Architecture §7's own wording: "a separately,
 # conservatively set noteworthiness threshold"). Two independent guards,
@@ -87,3 +90,68 @@ def detect_review_outcome_patterns(
             "rate": rate,
         })
     return patterns
+
+
+def _describe_pattern(pattern: dict) -> str:
+    """
+    Architecture §7 point 2: the candidate content must describe both
+    the observation AND a suggested policy adjustment -- not just raw
+    numbers with no interpretation.
+    """
+    return (
+        f"Self-healing observation: {pattern['unfavorable_count']} of "
+        f"{pattern['total_reviewed']} {pattern['memory_type']}-type candidates "
+        f"in project '{pattern['owning_project']}' with classification "
+        f"'{pattern['classification']}' were rejected or quarantined by the "
+        f"developer over the last {OBSERVATION_WINDOW_DAYS} days "
+        f"({pattern['rate']:.0%}). This may indicate the current policy "
+        f"thresholds for this context are miscalibrated -- worth reviewing "
+        f"whether REVIEW_THRESHOLD or AUTO_PROMOTE_THRESHOLD should be "
+        f"adjusted for '{pattern['classification']}' candidates in this "
+        f"project, or whether this classification's underlying check "
+        f"itself needs revisiting."
+    )
+
+
+def submit_detected_pattern(pattern: dict) -> dict:
+    """
+    Step 11.2 (Architecture §7 points 2-3): submits ONE detected pattern
+    as a real candidate through submit_candidate() -- the exact same
+    function the HTTP endpoint POST /memory/candidate calls, not a
+    reimplementation or a special-cased write path (Workflow's explicit
+    requirement).
+
+    memory_type is "policy", NOT "procedural" as Architecture §7's own
+    literal wording states -- a deliberate, confirmed deviation. Only
+    "policy" is in HIGH_RISK_TYPES (app/policy.py); "procedural" is not.
+    Submitting as "procedural" would silently violate point 3's own
+    stated guarantee ("guaranteed needs_review") for ordinary confidence/
+    contradiction values, since nothing else in decide_path() would
+    reliably force review for this content. "A suggested policy
+    adjustment" (the spec's own description of the content) is, on
+    reflection, a more honest label as "policy" than "procedural" in any
+    case -- this mirrors how POST /memory/policy already treats a
+    proposed-but-not-yet-adopted policy as ordinary policy-type content
+    pending review, not a special category of its own.
+
+    Uses the dedicated self_healing writer credential (Step 11.2) --
+    distinct from gbrain_dreaming, manual_submission, and the future
+    pdlf_step_sync -- so the governor can always tell a self-generated
+    observation apart from every other writer.
+    """
+    credential = os.environ["MEMORY_GOVERNOR_WRITER_SELF_HEALING"]
+
+    req = CandidateSubmissionRequest(
+        owning_project=pattern["owning_project"],
+        visibility="project_local",
+        retention="long_term",
+        memory_type="policy",
+        content=Content(text=_describe_pattern(pattern)),
+        source_type="agent_trace",
+        source_ref="self_healing.detect_review_outcome_patterns",
+        policy_version="v1",
+        confidence=Confidence(score=1.0, method="rule_based"),
+    )
+
+    result = submit_candidate(req, credential)
+    return result

@@ -127,3 +127,140 @@ class TestObservationPass:
             assert before == after == 6
         finally:
             _cleanup()
+
+
+
+TEST_PROJECT_112 = "test-11-2-pytest"
+
+
+def _cleanup_112():
+    from app.storage import get_connection
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "DELETE FROM audit_log WHERE memory_id IN "
+                "(SELECT memory_id FROM memory_candidates WHERE owning_project = %s)",
+                (TEST_PROJECT_112,),
+            )
+            cur.execute(
+                "DELETE FROM memory_events WHERE memory_id IN "
+                "(SELECT memory_id FROM memory_candidates WHERE owning_project = %s)",
+                (TEST_PROJECT_112,),
+            )
+            cur.execute("DELETE FROM memory_candidates WHERE owning_project = %s", (TEST_PROJECT_112,))
+            cur.execute("DELETE FROM projects WHERE project_id = %s", (TEST_PROJECT_112,))
+        conn.commit()
+
+
+class TestSubmitDetectedPattern:
+    """
+    Step 11.2 (Architecture §7, points 2-3). The single most important
+    guarantee this step provides: a self-generated pattern submission
+    must NEVER auto-promote. This is a real, previously-latent defect in
+    the specification's own literal wording (it said "procedural"-type,
+    which is NOT in HIGH_RISK_TYPES and would NOT have been guaranteed
+    needs_review) -- found and fixed before any code existed. This test
+    is what makes that fix permanent, not just proven once live.
+    """
+
+    def test_submitted_pattern_is_always_needs_review_not_auto_promoted(self):
+        from app.storage import insert_project, get_candidate
+        from app.self_healing import submit_detected_pattern
+
+        _cleanup_112()
+        try:
+            insert_project(TEST_PROJECT_112, "Step 11.2 Pytest")
+
+            fake_pattern = {
+                "memory_type": "fact",
+                "owning_project": TEST_PROJECT_112,
+                "classification": "low_confidence",
+                "total_reviewed": 8,
+                "unfavorable_count": 6,
+                "rate": 0.75,
+            }
+
+            result = submit_detected_pattern(fake_pattern)
+            candidate = get_candidate(result["memory_id"])
+
+            assert candidate.status == "under_review"
+            assert result["decision_path"] == "needs_review"
+        finally:
+            _cleanup_112()
+
+    def test_submitted_as_policy_type_not_procedural(self):
+        """
+        Regression test for the exact defect: memory_type must be
+        "policy" (genuinely high-risk), never "procedural" (not in
+        HIGH_RISK_TYPES) -- Architecture §7's own literal wording, if
+        followed exactly, would fail this test.
+        """
+        from app.storage import insert_project, get_candidate
+        from app.self_healing import submit_detected_pattern
+
+        _cleanup_112()
+        try:
+            insert_project(TEST_PROJECT_112, "Step 11.2 Pytest")
+
+            fake_pattern = {
+                "memory_type": "fact",
+                "owning_project": TEST_PROJECT_112,
+                "classification": "low_confidence",
+                "total_reviewed": 8,
+                "unfavorable_count": 6,
+                "rate": 0.75,
+            }
+
+            result = submit_detected_pattern(fake_pattern)
+            candidate = get_candidate(result["memory_id"])
+
+            assert candidate.memory_type == "policy"
+        finally:
+            _cleanup_112()
+
+    def test_writer_identity_is_self_healing_not_another_writer(self):
+        from app.storage import insert_project, get_candidate
+        from app.self_healing import submit_detected_pattern
+
+        _cleanup_112()
+        try:
+            insert_project(TEST_PROJECT_112, "Step 11.2 Pytest")
+
+            fake_pattern = {
+                "memory_type": "fact",
+                "owning_project": TEST_PROJECT_112,
+                "classification": "low_confidence",
+                "total_reviewed": 8,
+                "unfavorable_count": 6,
+                "rate": 0.75,
+            }
+
+            result = submit_detected_pattern(fake_pattern)
+            candidate = get_candidate(result["memory_id"])
+
+            assert candidate.provenance.writer_identity == "self_healing"
+            assert candidate.provenance.source_type == "agent_trace"
+        finally:
+            _cleanup_112()
+
+    def test_content_describes_observation_and_suggests_adjustment(self):
+        """
+        Architecture §7 point 2: must describe both the observation
+        AND a suggested policy adjustment, not just raw numbers.
+        """
+        from app.self_healing import _describe_pattern
+
+        pattern = {
+            "memory_type": "fact",
+            "owning_project": "proj-x",
+            "classification": "low_confidence",
+            "total_reviewed": 10,
+            "unfavorable_count": 7,
+            "rate": 0.7,
+        }
+        description = _describe_pattern(pattern)
+
+        assert "7" in description and "10" in description
+        assert "proj-x" in description
+        assert "low_confidence" in description
+        assert "threshold" in description.lower() or "adjust" in description.lower()
