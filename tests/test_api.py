@@ -875,3 +875,111 @@ class TestPolicyUpdatePath:
             assert before_count == after_count
         finally:
             self._cleanup()
+
+
+
+class TestArchitecture10Test8ReviewerRequired:
+    """
+    Step 11.4, Architecture §10 test #8: a self-generated policy-change
+    candidate cannot reach promoted without a recorded human reviewer.
+    Found a real defect while writing this test -- an empty or
+    whitespace-only reviewer string satisfied Pydantic's bare str type
+    check but identified no human at all, letting a candidate reach
+    "promoted" with an effectively-unrecorded reviewer. Fixed via a
+    field_validator on ReviewDecisionRequest.reviewer.
+    """
+
+    TEST_PROJECT = "test-11-4-pytest"
+
+    def _cleanup(self):
+        from app.storage import get_connection
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "DELETE FROM audit_log WHERE memory_id IN "
+                    "(SELECT memory_id FROM memory_candidates WHERE owning_project = %s)",
+                    (self.TEST_PROJECT,),
+                )
+                cur.execute(
+                    "DELETE FROM memory_events WHERE memory_id IN "
+                    "(SELECT memory_id FROM memory_candidates WHERE owning_project = %s)",
+                    (self.TEST_PROJECT,),
+                )
+                cur.execute("DELETE FROM memory_candidates WHERE owning_project = %s", (self.TEST_PROJECT,))
+                cur.execute("DELETE FROM projects WHERE project_id = %s", (self.TEST_PROJECT,))
+            conn.commit()
+
+    def _submit_needs_review_candidate(self, api_client, real_credential_headers):
+        from app.storage import insert_project
+        insert_project(self.TEST_PROJECT, "Step 11.4 Pytest")
+        resp = api_client.post("/memory/candidate", headers=real_credential_headers, json={
+            "owning_project": self.TEST_PROJECT, "visibility": "project_local", "retention": "long_term",
+            "memory_type": "policy", "content": {"text": "Step 11.4 pytest candidate."},
+            "source_type": "user", "source_ref": "/tmp/x.md", "policy_version": "v1",
+            "confidence": {"score": 0.95, "method": "human_verified"},
+        })
+        assert resp.status_code == 201
+        return resp.json()["memory_id"]
+
+    def test_missing_reviewer_field_rejected_with_422(self, api_client, real_credential_headers):
+        self._cleanup()
+        try:
+            memory_id = self._submit_needs_review_candidate(api_client, real_credential_headers)
+            resp = api_client.post(f"/memory/{memory_id}/review", headers=real_credential_headers, json={
+                "decision": "promote", "reason": "test",
+            })
+            assert resp.status_code == 422
+        finally:
+            self._cleanup()
+
+    def test_empty_string_reviewer_rejected(self, api_client, real_credential_headers):
+        self._cleanup()
+        try:
+            memory_id = self._submit_needs_review_candidate(api_client, real_credential_headers)
+            resp = api_client.post(f"/memory/{memory_id}/review", headers=real_credential_headers, json={
+                "decision": "promote", "reason": "test", "reviewer": "",
+            })
+            assert resp.status_code == 422
+        finally:
+            self._cleanup()
+
+    def test_whitespace_only_reviewer_rejected(self, api_client, real_credential_headers):
+        self._cleanup()
+        try:
+            memory_id = self._submit_needs_review_candidate(api_client, real_credential_headers)
+            resp = api_client.post(f"/memory/{memory_id}/review", headers=real_credential_headers, json={
+                "decision": "promote", "reason": "test", "reviewer": "   ",
+            })
+            assert resp.status_code == 422
+        finally:
+            self._cleanup()
+
+    def test_candidate_never_reaches_promoted_after_rejected_attempts(
+        self, api_client, real_credential_headers
+    ):
+        from app.storage import get_candidate
+        self._cleanup()
+        try:
+            memory_id = self._submit_needs_review_candidate(api_client, real_credential_headers)
+            api_client.post(f"/memory/{memory_id}/review", headers=real_credential_headers, json={
+                "decision": "promote", "reason": "test",
+            })
+            api_client.post(f"/memory/{memory_id}/review", headers=real_credential_headers, json={
+                "decision": "promote", "reason": "test", "reviewer": "",
+            })
+            candidate = get_candidate(memory_id)
+            assert candidate.status == "under_review"
+        finally:
+            self._cleanup()
+
+    def test_genuine_reviewer_name_still_works_correctly(self, api_client, real_credential_headers):
+        self._cleanup()
+        try:
+            memory_id = self._submit_needs_review_candidate(api_client, real_credential_headers)
+            resp = api_client.post(f"/memory/{memory_id}/review", headers=real_credential_headers, json={
+                "decision": "promote", "reason": "test", "reviewer": "dave",
+            })
+            assert resp.status_code == 200
+            assert resp.json()["new_status"] == "promoted"
+        finally:
+            self._cleanup()

@@ -4,7 +4,7 @@ from typing import List, Optional, Any
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from fastapi.responses import PlainTextResponse
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, model_validator, field_validator
 
 from .models import (
     GovernedMemoryCandidate, Scope, Subject, Content, Timestamps,
@@ -514,10 +514,24 @@ class ReviewDecisionRequest(NoNulBytesModel):
     -- a review resolution without an identified human defeats the point
     of a hard-stop review. See this step's design note: reviewer is
     self-reported, NOT cryptographically verified like writer_identity.
+
+    Step 11.4: a genuine defect found via Architecture §10 test #8 --
+    an empty string satisfies Pydantic's bare `str` type check but
+    identifies no human at all, and was being silently accepted,
+    letting a candidate reach "promoted" with an effectively-unrecorded
+    reviewer. Whitespace-only ("   ") is rejected for the same reason --
+    passing a naive length check while still identifying nobody real.
     """
     decision: Literal["promote", "quarantine", "reject"]
     reason: Optional[str] = None
     reviewer: str
+
+    @field_validator("reviewer")
+    @classmethod
+    def _reviewer_must_be_non_empty(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("reviewer must be a non-empty, non-whitespace string identifying a real human")
+        return v
 
 
 @router.post("/memory/{memory_id}/review", responses={
