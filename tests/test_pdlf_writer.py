@@ -148,3 +148,63 @@ class TestSubmitPdlfArtifact:
             assert result["status"] == "promoted"
         finally:
             _cleanup()
+
+
+class TestStepContinuationPrimitive:
+    """
+    Workflow Step 13.3: no PDLF step begins while any review item is open
+    anywhere (design decision made during this project's own planning
+    conversation, not this file's own invention). Confirms
+    GET /memory/review-queue -- already built and proven in Phase 10 --
+    is a genuinely sufficient, already-correct primitive for this exact
+    purpose, specifically for pdlf_step_sync submissions. No new
+    governor-side code was needed for this step; this test makes that
+    finding permanent rather than a one-off live check.
+    """
+
+    def test_review_queue_correctly_reflects_pdlf_step_sync_before_during_and_after(self):
+        import os
+        from fastapi import FastAPI
+        from fastapi.testclient import TestClient
+        from app.api import router
+        from app.models import Contradiction
+
+        app = FastAPI()
+        app.include_router(router)
+        client = TestClient(app)
+        headers = {"X-Governor-Credential": os.environ["MEMORY_GOVERNOR_WRITER_MANUAL_SUBMISSION"]}
+
+        _cleanup()
+        try:
+            insert_project(TEST_PROJECT, "Step 13.3 Pytest")
+
+            before = client.get("/memory/review-queue", headers=headers).json()
+            assert [c for c in before if c["owning_project"] == TEST_PROJECT] == []
+
+            result = submit_pdlf_artifact(
+                owning_project=TEST_PROJECT,
+                content_text="A PDLF artifact requiring developer review.",
+                memory_type="fact",
+                source_ref="CONTEXT.md",
+                confidence_score=0.9,
+                confidence_method="human_verified",
+                contradiction=Contradiction(detected=True, cross_project=True, resolution=None),
+            )
+            assert result["status"] == "under_review"
+            memory_id = result["memory_id"]
+
+            during = client.get("/memory/review-queue", headers=headers).json()
+            matching = [c for c in during if c["owning_project"] == TEST_PROJECT]
+            assert len(matching) == 1
+            assert matching[0]["memory_id"] == memory_id
+
+            resolve_resp = client.post(
+                f"/memory/{memory_id}/review", headers=headers,
+                json={"decision": "promote", "reason": "test", "reviewer": "dave"},
+            )
+            assert resolve_resp.status_code == 200
+
+            after = client.get("/memory/review-queue", headers=headers).json()
+            assert [c for c in after if c["owning_project"] == TEST_PROJECT] == []
+        finally:
+            _cleanup()
