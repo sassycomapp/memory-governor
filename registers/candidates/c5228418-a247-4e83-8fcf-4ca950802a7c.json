@@ -1,0 +1,58 @@
+{
+  "memory_id": "c5228418-a247-4e83-8fcf-4ca950802a7c",
+  "owning_project": "test-gbrain-15-2-1787653820",
+  "agent_id": null,
+  "session_id": null,
+  "scope": {
+    "visibility": "project_local",
+    "retention": "long_term",
+    "authority": null,
+    "owning_project": "test-gbrain-15-2-1787653820",
+    "shared_with": []
+  },
+  "memory_type": "fact",
+  "subject": null,
+  "content": {
+    "text": "STEP-15-2-DRILL-1787653821: content that must survive a simulated Postgres loss, cross-checked against both the register/payload store and GBrain itself.",
+    "structured": null
+  },
+  "provenance": {
+    "source_type": "user",
+    "source_ref": "/tmp/step-15-2.md",
+    "writer_identity": "manual_submission",
+    "derived_from": null,
+    "policy_version": "v1",
+    "lineage_hash": "988d65b668289c125f062ac26bf763d8282b8709c3093492a61dbd790293ed27"
+  },
+  "timestamps": {
+    "created_at": "2026-08-25T12:30:21.802517+02:00",
+    "updated_at": "2026-08-25T12:30:21.802517+02:00",
+    "valid_from": null,
+    "valid_until": null,
+    "valid_until_reason": null
+  },
+  "confidence": {
+    "score": 0.95,
+    "method": "human_verified"
+  },
+  "policy": {
+    "risk_level": "low",
+    "decision_path": "auto_promote",
+    "requires_human_review": false,
+    "allowed_actions": [
+      "promote"
+    ],
+    "classification": null,
+    "recommended_action": null
+  },
+  "status": "promoted",
+  "supersedes_id": null,
+  "contradiction": null,
+  "review": null,
+  "audit": {
+    "decision_by": "governor",
+    "decision_at": null,
+    "decision_reason": "policy engine: auto_promote",
+    "reviewer": null
+  }
+}
