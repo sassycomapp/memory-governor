@@ -1,0 +1,63 @@
+{
+  "memory_id": "22e49b30-e023-4979-904a-2c1a27ec7513",
+  "owning_project": "makepdlf-project-library",
+  "agent_id": null,
+  "session_id": null,
+  "scope": {
+    "visibility": "project_local",
+    "retention": "long_term",
+    "authority": null,
+    "owning_project": "dev-makepdlf",
+    "shared_with": []
+  },
+  "memory_type": "fact",
+  "subject": null,
+  "content": {
+    "text": "---\ndocument: Spec Postgres Ledger\ndoc-id: makepdlf-0037\nstate: Live\ndate-created: 2026-07-13\n---\n\n# PDLF Postgres Ledger Specification\n\n**Purpose:** This file is the single source of truth for the PDLF Postgres ledger — the database schema, role, connection method, and operating principles. Based on ADR `postgres-ledger-replaces-flat-files.md`.\n\n**Status:** Binding specification.\n\n**Date:** 2026-07-13\n\n---\n\n## Connection\n\n| Setting | Value |\n|---|---|\n| Host | `localhost` |\n| Port | `5432` |\n| Database | `pdlf` |\n| Role | `pdlf_agent` |\n| Password | `PGPASSWORD` in `.env` |\n| Installation | `C:\\Program Files\\PostgreSQL\\15\\` (Windows) |\n| WSL bridge | `powershell.exe -Command '$env:PGPASSWORD=\"...\"; & \"C:\\Program Files\\PostgreSQL\\15\\bin\\psql.exe\" -h localhost -U pdlf_agent -d pdlf -c \"...\"'` |\n\nPostgreSQL runs on Windows. OpenCode runs in WSL. WSL's binfmt does not pass Linux env vars to Windows executables. Use the PowerShell bridge pattern. Do NOT attempt direct psql from WSL.\n\n### Direct Windows PowerShell connection (human-run, not via OpenCode)\n\nConfirmed live, 2026-08-26. A separate, valid connection pattern for a\ndeveloper running commands directly in Windows PowerShell, not through\nOpenCode/WSL:\n\n```powershell\n$env:PGPASSWORD = \"<value from .env>\"\n& \"C:\\Program Files\\PostgreSQL\\15\\bin\\psql.exe\" -U pdlf_agent -d pdlf -h 127.0.0.1 -c \"<SQL>\"\n```\n\nOne confirmed pitfall:\n\n- **Do not build a `.sql` file via PowerShell's `Out-File` and pass it\n  with `psql -f`.** `Out-File -Encoding utf8` adds a byte-order-mark\n  invisible in the terminal, which `psql` fails to parse, producing\n  `syntax error at or near \"ï»¿ALTER\"` on the first statement only. Pass\n  SQL directly via `-c` instead, or verify the file is BOM-free before\n  using `-f`.\n\nNote: an earlier version of this document incorrectly attributed a\nconnection failure to `-h localhost` resolving to the IPv6 loopback\n(`::1`) rather than IPv4. Live reproduction (2026-08-26, four-test\nmatrix: `localhost`/`127.0.0.1`/`::1`, each with correct and incorrect\npassword) confirmed the address was never the cause — `localhost` with\nthe correct password succeeds. The original failure was a wrong\npassword, not an address issue. Corrected here; either host form is\nfine as long as the real value of `PGPASSWORD` from `.env` is used.\n\n---\n\n## Schema\n\nSeven tables, referentially enforced:\n\n### `projects`\n\n| Column | Type | Notes |\n|---|---|---|\n| `slug` | text | Primary key. Project identifier (e.g., `mb5pdlf`) |\n| `name` | text | Human-readable name |\n| `mode` | text | `full` or `test` |\n| `paths` | jsonb | File system paths for code repo and project-library |\n| `gbrain_sources` | text[] | GBrain source IDs |\n| `is_active` | boolean | Whether project is currently active |\n\n### `steps`\n\n| Column | Type | Notes |\n|---|---|---|\n| `step_number` | integer | Step number (11–46, plus lettered sub-steps) |\n| `type` | text | `SKILL`, `MANUAL`, `OPTIONAL`, or `GATE` |\n| `status` | text | `pending`, `in_progress`, `complete`, `synthesized`, `skipped` |\n| `synthesized` | boolean | Whether content was synthesized in test mode |\n| `artifact_path` | text | Path to step output artifact |\n| `next_action` | text | Agent-facing guidance for next step |\n\n### `gates`\n\n| Column | Type | Notes |\n|---|---|---|\n| `gate_name` | text | Primary key. Gate identifier (e.g., `domain-locked`) |\n| `passed` | boolean | Whether gate was approved |\n| `approved_at` | timestamptz | When developer approved |\n\n### `deviations`\n\n| Column | Type | Notes |\n|---|---|---|\n| `description` | text | Why the deviation was needed |\n| `options_presented` | jsonb | Three options presented to developer |\n| `decision` | text | Developer's chosen option |\n\n### `bft_records`\n\n| Column | Type | Notes |\n|---|---|---|\n| `level` | text | `full`, `light`, or `none` |\n| `bones` | text | Structure question answer |\n| `muscle` | text | Action question answer |\n| `nerves` | text | Information question answer |\n| `fat` | text | Filler question answer |\n| `skin` | text | Appearance question answer |\n| `health` | text | Health question answer |\n\n### `isc` (Ideal State Criteria)\n\n| Column | Type | Notes |\n|---|---|---|\n| `isc_number` | integer | Criterion number (from ISA) |\n| `description` | text | What the criterion checks |\n| `verify_method` | text | How the criterion is verified |\n| `status` | text | `pending`, `passed`, `failed` |\n| `evidence` | text | Verification evidence |\n\n### `triage_findings`\n\n**Corrected 2026-08-26 — the version below was stale against the live\nschema.** Eight columns were added and the `source_step` constraint was\nwidened, both confirmed live against the running database, in support of a\nsecurity-review layer for PDLF (design work done outside this project's\nown file tree at time of writing — not yet saved to a real path here).\n\n| Column | Type | Notes |\n|---|---|---|\n| `id` | serial | Primary key |\n| `step_id` | integer | FK → `steps(id)`. Identifies which feature-cycle execution this finding belongs to. |\n| `finding_id` | text | Stable identifier from Steps 37-38 findings. No companion table — confirmed against the full seven-table schema list; free-standing identifier. |\n| `source_step` | text | Which step produced this finding: `16, 17, 19, 20, 21, 34, 35, 36, 37, 38, 39, 45, 46` — widened from the original `36, 37, 38` to support Sentinel-originated findings from earlier steps |\n| `triage_label` | text | One of: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix` |\n| `resolution_note` | text | How the finding was resolved (developer-provided) |\n| `resolved_by` | text | Who resolved it |\n| `resolved_at` | timestamptz | When it was resolved |\n| `created_at` | timestamptz | When the row was first written |\n| `concern` | text | What the security concern is |\n| `asset` | text | What data or capability is at risk |\n| `threat` | text | Who or what could exploit it |\n| `evidence` | text | Why this was flagged |\n| `severity` | text | `Low`, `Medium`, `High`, `Critical` |\n| `confidence` | text | `Low`, `Medium`, `High` |\n| `recommended_control` | text | Proposed fix |\n| `verification` | text | How to confirm it's resolved |\n\nThe `build-verified` gate queries this table: every row for the feature's `step_id` must have `triage_label = 'wontfix'` OR `resolved_at IS NOT NULL`. No open findings remain. The `.scratch/` triage output is transient input — the ledger row is authoritative.\n\n---\n\n## Principles\n\n1. **The ledger is the single source of truth.** If it's not in `pdlf`, it didn't happen.\n2. **Step sequencing is enforced by the orchestrator, not the database.** Confirmed by\n   live test 2026-07-18: the only foreign key on `steps` is `project_slug → projects(slug)`.\n   There is no inter-step constraint — inserting Step 19 with no Step 16 present succeeds\n   at the schema level. Step dependencies vary per step (see `run-plan.md`'s Step\n   Dependencies table) and cannot be expressed as a fixed column-level FK. OpenCode checks\n   `run-plan.md`'s dependency table before writing a step's ledger row; this is the actual\n   enforcement point. A database-level trigger was considered and rejected: it would\n   require a second, hand-maintained copy of the dependency graph already defined in\n   `run-plan.md`, with no mechanism forcing the two to stay in sync — the same\n   duplicate-source-of-truth failure found and corrected repeatedly elsewhere in this\n   document set. The only writer with legitimate access to this database is OpenCode,\n   operating through a PDLF step (see `AGENTS.md`); a raw write bypassing the orchestrator\n   is already a policy violation before it reaches the schema.\n3. **Step Receipts are generated from ledger rows.** The receipt IS the ledger row, formatted for reading — not a separately composed summary.\n4. **No flat files.** Flat-file state management (state file, devlog, completion report) is fully retired.\n5. **No narrative gloss can diverge from what actually happened.** The receipt is a snapshot of the row at the time it was written.\n",
+    "structured": null
+  },
+  "provenance": {
+    "source_type": "user",
+    "source_ref": "/mnt/c/dev/dev-makepdlf/makepdlf-project-library/specifications-local/spec-postgres-ledger.md",
+    "writer_identity": "manual_submission",
+    "derived_from": null,
+    "policy_version": "v1",
+    "lineage_hash": "3d180dcdc52e5e2c78643e397bbdb6e1b3e2c59d2beb7e6d2fa4c5440068367c"
+  },
+  "timestamps": {
+    "created_at": "2026-08-26T23:13:39.111085+02:00",
+    "updated_at": "2026-08-26T23:13:39.111085+02:00",
+    "valid_from": null,
+    "valid_until": null,
+    "valid_until_reason": null
+  },
+  "confidence": {
+    "score": 0.85,
+    "method": "model_based"
+  },
+  "policy": {
+    "risk_level": "low",
+    "decision_path": "auto_promote",
+    "requires_human_review": false,
+    "allowed_actions": [
+      "promote"
+    ],
+    "classification": null,
+    "recommended_action": null
+  },
+  "status": "promoted",
+  "supersedes_id": null,
+  "contradiction": {
+    "detected": true,
+    "conflicts_with": null,
+    "resolution": "closed_by_new_fact",
+    "cross_project": false
+  },
+  "review": null,
+  "audit": {
+    "decision_by": "governor",
+    "decision_at": null,
+    "decision_reason": "policy engine: auto_promote",
+    "reviewer": null
+  }
+}
