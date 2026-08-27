@@ -44,6 +44,20 @@ def _switch_to_source(owning_project: str) -> None:
         )
 
 
+def _sanitize_fact_text(text: str) -> str:
+    """
+    `gbrain remember` misreads a fact whose text BEGINS with dashes as a
+    CLI option. Confirmed live 2026-08-27: a fact of '---' prints the
+    usage screen and exits non-zero, which `gbrain remember` surfaces as a
+    hard failure. Markdown files begin with '---' (YAML front matter), so
+    passing a file's raw text straight through always fails. Strip leading
+    dashes and whitespace so the fact starts on real content (front-matter
+    keys or body), never a dash. Mid-document '---' is untouched -- only a
+    LEADING dash is misparsed.
+    """
+    return text.lstrip("- \t\r\n")
+
+
 def remember_candidate(candidate: GovernedMemoryCandidate) -> str:
     """
     Switches to the candidate's owning_project as the active GBrain
@@ -67,7 +81,7 @@ def remember_candidate(candidate: GovernedMemoryCandidate) -> str:
 
     result = subprocess.run(
         [
-            "gbrain", "remember", candidate.content.text,
+            "gbrain", "remember", _sanitize_fact_text(candidate.content.text),
             "--provenance", provenance_text,
             "--visibility", "world",
         ],
