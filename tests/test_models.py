@@ -209,6 +209,16 @@ class TestGovernedMemoryCandidate:
         c = GovernedMemoryCandidate(**_minimal_candidate(memory_type="procedural"))
         assert c.memory_type == "procedural"
 
+    @pytest.mark.parametrize("mtype", [
+        "credential", "identity", "architecture", "security",
+    ])
+    def test_high_risk_memory_types_accepted(self, mtype):
+        """Added 2026-09-08: resolves the HIGH_RISK_TYPES spec
+        inconsistency -- Architecture Spec §2's five high-risk categories
+        are now all representable in the MemoryType enum."""
+        c = GovernedMemoryCandidate(**_minimal_candidate(memory_type=mtype))
+        assert c.memory_type == mtype
+
     def test_invalid_memory_type_rejected(self):
         with pytest.raises(ValidationError):
             GovernedMemoryCandidate(**_minimal_candidate(memory_type="not_real"))

@@ -204,3 +204,15 @@ def listen_loop(
         conn.close()
 
     return iterations
+
+
+if __name__ == "__main__":
+    # Production entry point (added 2026-09-08): the dedicated worker
+    # process is started as `python -m app.worker` and runs the LISTEN
+    # loop forever -- no stop arguments are passed in a real deployment.
+    # Without this guard the documented "one dedicated worker process"
+    # had no startable production entry point at all (only tests could
+    # exercise it via stop_after_* limits).
+    logging.basicConfig(level=logging.INFO)
+    iterations = listen_loop()
+    logger.info("worker: exited after %s iterations", iterations)

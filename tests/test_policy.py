@@ -41,16 +41,27 @@ def _candidate(**overrides) -> GovernedMemoryCandidate:
 
 
 # ---------------------------------------------------------------------------
-# HIGH_RISK_TYPES — lock in the documented interpretation. Unaffected by the
-# two-outcome model: these call compute_risk_level() directly, not decide_path().
+# HIGH_RISK_TYPES — RESOLVED 2026-09-08 (developer decision): the
+# MemoryType enum was extended with the four missing spec categories, and
+# all five of Architecture Spec §2's high-risk categories are governed
+# here exactly as the architectural intent specifies.
 # ---------------------------------------------------------------------------
 
 class TestHighRiskTypesInterpretation:
-    def test_only_policy_is_high_risk(self):
-        assert HIGH_RISK_TYPES == frozenset({"policy"})
+    def test_high_risk_types_are_the_five_spec_categories(self):
+        assert HIGH_RISK_TYPES == frozenset({
+            "policy", "credential", "identity", "architecture", "security",
+        })
 
     def test_policy_type_is_high_risk(self):
         c = _candidate(memory_type="policy")
+        assert compute_risk_level(c) == "high"
+
+    @pytest.mark.parametrize("mtype", [
+        "credential", "identity", "architecture", "security",
+    ])
+    def test_each_new_spec_category_is_high_risk(self, mtype):
+        c = _candidate(memory_type=mtype)
         assert compute_risk_level(c) == "high"
 
     @pytest.mark.parametrize("mtype", [

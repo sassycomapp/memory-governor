@@ -79,11 +79,23 @@ def remember_candidate(candidate: GovernedMemoryCandidate) -> str:
         f"decided={candidate.status}"
     )
 
+    # --- Visibility mapping (corrected 2026-09-08, fixing a real defect
+    # caught by Step 12.2's own isolation test): GBrain's remember offers
+    # only "world" (readable everywhere) and "private" (this machine
+    # only). This module previously hardcoded "world", making every
+    # governed memory world-readable regardless of its declared scope --
+    # which defeated project isolation at the recall level. Mapping: only
+    # shared_all candidates are world-visible; project_local and
+    # shared_specific candidates are private to this machine, exactly as
+    # their declared scope intends. ---
+    visibility = "world" if candidate.scope.visibility == "shared_all" else "private"
+
     result = subprocess.run(
         [
             "gbrain", "remember", _sanitize_fact_text(candidate.content.text),
             "--provenance", provenance_text,
-            "--visibility", "world",
+            "--entity", candidate.owning_project,
+            "--visibility", visibility,
         ],
         capture_output=True, text=True, check=True,
     )

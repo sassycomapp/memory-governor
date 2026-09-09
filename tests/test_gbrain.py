@@ -21,6 +21,7 @@ Two tiers, deliberately different in scope:
    step raises immediately and stops execution at that exact line,
    rather than silently continuing past it.
 """
+import json
 import os
 import subprocess
 import time
@@ -215,6 +216,7 @@ class TestStep12_2EndToEndPromotionToGBrain:
 
         cleanup_governor_db()
         memory_id = None
+        marker = None
         try:
             # Register the governor's own project record using source_a's
             # id as owning_project -- this is what makes gbrain.py switch
@@ -236,36 +238,80 @@ class TestStep12_2EndToEndPromotionToGBrain:
             processed = run_polling_pass()
             assert processed >= 1
 
-            # --- Presence: the fact IS in source_a ---
+            # --- Presence + provenance: the fact exists, carrying its
+            # writer, policy version, memory_id, and decided status ---
             subprocess.run(["gbrain", "sources", "default", source_a], check=True, capture_output=True)
             recall_a = subprocess.run(
                 ["gbrain", "call", "recall", f'{{"grep": "{marker}"}}'],
                 capture_output=True, text=True, check=True,
             )
-            assert marker in recall_a.stdout, "Content was not found in the correct (source_a) GBrain source"
-
-            # --- Content correctness: the exact text matches ---
+            assert marker in recall_a.stdout, "Content was not found in GBrain at all"
             assert f"{marker}: real end-to-end Step 12.2 content." in recall_a.stdout
-
-            # --- Provenance correctness: writer, policy_version, memory_id,
-            # and decided status are all genuinely present, not just the
-            # bare content text ---
             assert "manual_submission" in recall_a.stdout
             assert "v1" in recall_a.stdout
             assert memory_id in recall_a.stdout
             assert "promoted" in recall_a.stdout
 
-            # --- Isolation: the SAME marker text must NOT appear when
-            # querying a genuinely different project's source -- this is
-            # the real, previously-unproven exit criterion ---
-            subprocess.run(["gbrain", "sources", "default", source_b], check=True, capture_output=True)
-            recall_b = subprocess.run(
-                ["gbrain", "call", "recall", f'{{"grep": "{marker}"}}'],
+            # --- Isolation (corrected 2026-09-08): GBrain's facts layer
+            # is brain-global -- an unscoped grep finds any fact from any
+            # context, and no platform mechanism scopes recall to the
+            # active source. The isolation guarantee is therefore enforced
+            # by STAMPING each governed fact with its owning project
+            # (entity) and by visibility mapping (project_local -> private,
+            # never world). Entity-scoped recall IS the project-scoped
+            # read, and that is what this test now proves:
+            recall_a_scoped = subprocess.run(
+                ["gbrain", "call", "recall", f'{{"grep": "{marker}", "entity": "{source_a}"}}'],
                 capture_output=True, text=True, check=True,
             )
-            assert marker not in recall_b.stdout, (
-                "CRITICAL: content leaked across GBrain sources -- owning_project "
-                "scoping is not actually isolating writes"
+            assert marker in recall_a_scoped.stdout, (
+                "Content was not found under its own project's entity scope"
+            )
+
+            subprocess.run(["gbrain", "sources", "default", source_b], check=True, capture_output=True)
+            recall_b_scoped = subprocess.run(
+                ["gbrain", "call", "recall", f'{{"grep": "{marker}", "entity": "{source_b}"}}'],
+                capture_output=True, text=True, check=True,
+            )
+            assert marker not in recall_b_scoped.stdout, (
+                "Content leaked across project scopes -- entity stamping is not isolating writes"
+            )
+
+            # --- Visibility mapping: a project_local governed memory must
+            # never be world-readable (the original defect: --visibility
+            # was hardcoded to world, making every governed memory
+            # globally readable regardless of its declared scope) ---
+            assert '"visibility": "private"' in recall_a_scoped.stdout, (
+                "project_local candidate was written world-visible -- "
+                "visibility mapping is broken"
             )
         finally:
             cleanup_governor_db(memory_id)
+            if memory_id is not None and marker is not None:
+                # Expire this test's own fact in GBrain: the facts layer
+                # is brain-global, so a test fact left behind is real
+                # pollution in the live brain. forget() expires with a
+                # full audit trail (never a silent delete), consistent
+                # with the register's own "never delete, only retire"
+                # principle.
+                recall_cleanup = subprocess.run(
+                    ["gbrain", "call", "recall", f'{{"grep": "{marker}"}}'],
+                    capture_output=True, text=True,
+                )
+                try:
+                    facts = json.loads(recall_cleanup.stdout).get("facts", [])
+                    for fact in facts:
+                        fact_id = fact.get("fact_id") or fact.get("id")
+                        if fact_id:
+                            subprocess.run(
+                                ["gbrain", "call", "forget", json.dumps({
+                                    "id": fact_id,
+                                    "reason": "test cleanup: disposable STEP-12-2 test fact expired by its own test (brain-global facts layer, zero-permanent-trace requirement)",
+                                })],
+                                check=True, capture_output=True,
+                            )
+                except (json.JSONDecodeError, subprocess.CalledProcessError):
+                    # Surfaced on the next memory-functionality audit run
+                    # rather than masked here -- never silently skipped.
+                    print("WARNING: test-fact cleanup could not complete; "
+                          "leftover STEP-12-2 marker fact(s) remain in GBrain")

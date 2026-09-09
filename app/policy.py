@@ -6,21 +6,20 @@ from .models import (
     RiskLevel,
 )
 
-# NOTE on HIGH_RISK_TYPES: Architecture Spec §2 names five categories --
-# "policy", "credential", "identity", "architecture", "security" -- but
-# only "policy" is a valid MemoryType value (see models.py's MemoryType
-# Literal). The other four are not valid memory_type values anywhere in
-# this codebase; they appear inherited unedited from the v1 sketch's risk
-# taxonomy and were never reconciled against the final MemoryType enum.
-# Flagged as an open spec inconsistency, not silently resolved: this uses
-# the only defensible literal reading (the single real overlap) rather
-# than guessing at unlisted enum values. If those four concepts need
-# governing, the fix belongs in models.py's MemoryType enum or a separate
-# content-classification field -- a developer decision, not this module's.
-HIGH_RISK_TYPES = frozenset({"policy"})
+# HIGH_RISK_TYPES: Architecture Spec §2 names five high-risk content
+# categories. RESOLVED 2026-09-08 (developer decision, closing the
+# previously-flagged spec inconsistency): the MemoryType enum was extended
+# with the four missing values, so all five categories are now
+# representable and all five are governed here exactly as the
+# architectural intent specifies.
+HIGH_RISK_TYPES = frozenset({
+    "policy", "credential", "identity", "architecture", "security",
+})
 
-# Stub thresholds -- Phase 2 replaces these with a live read from the
-# active row in the policy_versions table (Architecture §1.2).
+# Fallback thresholds -- used only when no active row exists in the
+# policy_versions table (see get_active_thresholds(), Step 11.3, which
+# reads the live values first; policy changes are data changes, not code
+# changes).
 REVIEW_THRESHOLD = 0.65
 AUTO_PROMOTE_THRESHOLD = 0.85
 

@@ -7,7 +7,8 @@ Retention = Literal["ephemeral", "session", "project", "long_term", "permanent"]
 Authority = Literal["self_observed", "user_asserted", "tool_observed", "policy_derived", "human_reviewed"]
 MemoryType = Literal[
     "fact", "preference", "policy", "episode", "trace",
-    "task_state", "relationship", "summary", "procedural"
+    "task_state", "relationship", "summary", "procedural",
+    "credential", "identity", "architecture", "security",
 ]
 SourceType = Literal["user", "agent_trace", "tool_result", "file", "ticket", "document", "human_review", "external"]
 RiskLevel = Literal["low", "medium", "high", "critical"]
