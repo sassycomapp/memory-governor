@@ -1,0 +1,58 @@
+{
+  "memory_id": "126d031b-0414-4fb3-bfa1-7e0d0325c312",
+  "owning_project": "test-audit-write",
+  "agent_id": null,
+  "session_id": null,
+  "scope": {
+    "visibility": "project_local",
+    "retention": "ephemeral",
+    "authority": null,
+    "owning_project": "test-audit-write",
+    "shared_with": []
+  },
+  "memory_type": "fact",
+  "subject": null,
+  "content": {
+    "text": "AUDIT-MARKER-1788939569: audit end-to-end write.",
+    "structured": null
+  },
+  "provenance": {
+    "source_type": "user",
+    "source_ref": "/tmp/memory-audit-e2e.md",
+    "writer_identity": "manual_submission",
+    "derived_from": null,
+    "policy_version": "v1",
+    "lineage_hash": "a796f6f63908181fe6bfad7ad4bc4a38f86db2c80706e3e7a5b610eed2b85ea3"
+  },
+  "timestamps": {
+    "created_at": "2026-09-09T09:39:29.794808+02:00",
+    "updated_at": "2026-09-09T09:39:29.794808+02:00",
+    "valid_from": null,
+    "valid_until": null,
+    "valid_until_reason": null
+  },
+  "confidence": {
+    "score": 0.95,
+    "method": "human_verified"
+  },
+  "policy": {
+    "risk_level": "low",
+    "decision_path": "auto_promote",
+    "requires_human_review": false,
+    "allowed_actions": [
+      "promote"
+    ],
+    "classification": null,
+    "recommended_action": null
+  },
+  "status": "promoted",
+  "supersedes_id": null,
+  "contradiction": null,
+  "review": null,
+  "audit": {
+    "decision_by": "governor",
+    "decision_at": null,
+    "decision_reason": "policy engine: auto_promote",
+    "reviewer": null
+  }
+}
