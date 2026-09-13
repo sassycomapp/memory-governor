@@ -1,0 +1,58 @@
+{
+  "memory_id": "c3f1bdc9-5c05-4cde-9a8a-04bc30509996",
+  "owning_project": "test-project-path-ingest",
+  "agent_id": null,
+  "session_id": null,
+  "scope": {
+    "visibility": "project_local",
+    "retention": "long_term",
+    "authority": null,
+    "owning_project": "test-project-path-ingest",
+    "shared_with": []
+  },
+  "memory_type": "fact",
+  "subject": null,
+  "content": {
+    "text": "First document.",
+    "structured": null
+  },
+  "provenance": {
+    "source_type": "file",
+    "source_ref": "/home/dev-p/memory-governor/tests-fixtures-path-ingestion/doc1.md",
+    "writer_identity": "manual_submission",
+    "derived_from": null,
+    "policy_version": "v1",
+    "lineage_hash": "0e72058c0d6ec686fa9683d8e01268a036ce36ad903f138cbb685b796415b391"
+  },
+  "timestamps": {
+    "created_at": "2026-09-13T13:50:46.737616+02:00",
+    "updated_at": "2026-09-13T13:50:46.737616+02:00",
+    "valid_from": null,
+    "valid_until": null,
+    "valid_until_reason": null
+  },
+  "confidence": {
+    "score": 0.95,
+    "method": "human_verified"
+  },
+  "policy": {
+    "risk_level": "low",
+    "decision_path": "auto_promote",
+    "requires_human_review": false,
+    "allowed_actions": [
+      "promote"
+    ],
+    "classification": null,
+    "recommended_action": null
+  },
+  "status": "promoted",
+  "supersedes_id": null,
+  "contradiction": null,
+  "review": null,
+  "audit": {
+    "decision_by": "governor",
+    "decision_at": null,
+    "decision_reason": "policy engine: auto_promote",
+    "reviewer": null
+  }
+}
