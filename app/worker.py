@@ -213,6 +213,9 @@ if __name__ == "__main__":
     # Without this guard the documented "one dedicated worker process"
     # had no startable production entry point at all (only tests could
     # exercise it via stop_after_* limits).
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+    )
     iterations = listen_loop()
     logger.info("worker: exited after %s iterations", iterations)
