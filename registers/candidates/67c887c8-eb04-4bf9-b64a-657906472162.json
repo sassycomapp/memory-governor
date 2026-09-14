@@ -1,0 +1,58 @@
+{
+  "memory_id": "67c887c8-eb04-4bf9-b64a-657906472162",
+  "owning_project": "mybizz-config-docs",
+  "agent_id": null,
+  "session_id": null,
+  "scope": {
+    "visibility": "project_local",
+    "retention": "long_term",
+    "authority": null,
+    "owning_project": "mybizz-config-docs",
+    "shared_with": []
+  },
+  "memory_type": "fact",
+  "subject": null,
+  "content": {
+    "text": "---\ndocument: \"Durable fact — The memory family (developer-stated 2026-09-14)\"\ndoc-id: fact-memory-family\nstate: Live\ndate-created: 2026-09-14\n---\n\n# Durable fact — The memory family\n\nThe memory family, as stated by the developer on 2026-09-14, consists of:\nGBrain, the GBrain dream cycle, Memory-Governor (its API being the\nto-be-confirmed part of memory-governor), Graphify, and the installed\nmb-submit-memory skill — with Cupcake and PostgreSQL indirectly related.\n\nThe integration overview for the family lives in two authoritative files:\n\n- `C:\\mybizz\\mybizz-os-docs\\memory-master-explainer.md` — how the four\n  mechanisms fit together; the cross-component coordination point, updated\n  by each memory-family run at its close-out (own commit).\n- `C:\\mybizz\\mybizz-os-docs\\memory-functionality-audit.md` — the\n  full-system audit procedure, invoked whenever the developer asks for a\n  memory functionality audit, or after any restart, repair, or suspicion.\n",
+    "structured": null
+  },
+  "provenance": {
+    "source_type": "user",
+    "source_ref": "/mnt/c/mybizz/mybizz-config-docs/facts/2026-09-14-memory-family.md",
+    "writer_identity": "manual_submission",
+    "derived_from": null,
+    "policy_version": "v1",
+    "lineage_hash": "bdc5f55a060f34d737b0a98c41b52b65baaa219dd76541fa20da168c47854e2a"
+  },
+  "timestamps": {
+    "created_at": "2026-09-14T22:14:33.933465+02:00",
+    "updated_at": "2026-09-14T22:14:33.933465+02:00",
+    "valid_from": null,
+    "valid_until": null,
+    "valid_until_reason": null
+  },
+  "confidence": {
+    "score": 0.9,
+    "method": "model_based"
+  },
+  "policy": {
+    "risk_level": "low",
+    "decision_path": "auto_promote",
+    "requires_human_review": false,
+    "allowed_actions": [
+      "promote"
+    ],
+    "classification": null,
+    "recommended_action": null
+  },
+  "status": "promoted",
+  "supersedes_id": null,
+  "contradiction": null,
+  "review": null,
+  "audit": {
+    "decision_by": "governor",
+    "decision_at": null,
+    "decision_reason": "policy engine: auto_promote",
+    "reviewer": null
+  }
+}
