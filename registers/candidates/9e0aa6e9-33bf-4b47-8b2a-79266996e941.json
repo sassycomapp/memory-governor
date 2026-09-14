@@ -1,0 +1,64 @@
+{
+  "memory_id": "9e0aa6e9-33bf-4b47-8b2a-79266996e941",
+  "owning_project": "mybizz-config-docs",
+  "agent_id": null,
+  "session_id": null,
+  "scope": {
+    "visibility": "shared_all",
+    "retention": "long_term",
+    "authority": null,
+    "owning_project": "mybizz-config-docs",
+    "shared_with": []
+  },
+  "memory_type": "fact",
+  "subject": null,
+  "content": {
+    "text": "---\ndocument: \"Durable fact — Developer standard: an honoured denial never substitutes for a formal execution\"\ndoc-id: fact-denial-re-execution-standard\nstate: Live\ndate-created: 2026-09-14\n---\n\n# Durable fact — Developer standard on guard denials (2026-09-14)\n\nAn honoured guard denial never substitutes for a formal execution. When a\ncheck is denied by a guard during an exam, audit, or verification run, the\nrun must re-execute that check as a clean, single-purpose command —\nrequesting a grant in the format `mg-grant --path <folder> --count N`\n(handed to the developer to arrange) where a write or access permission is\nrequired — or reclassify the check developer-run, handing the exact\ncommand to the developer for verbatim recording. A denied check is never\nmarked as passed on evidence from an earlier session or an earlier point\nin the same session; prior evidence may inform judgment but never\nsubstitutes for a same-run execution.\n\nStated by the developer 2026-09-14 during the graphify configuration-\nmanagement run #1, and applied live there: every denied check was\nre-executed formally and passed. Permanent home:\n`config-manager-learnings.md` entry #4; destination\n`config-manager-reference.md` (Guard denials / Developer-returned results\nsections).\n",
+    "structured": null
+  },
+  "provenance": {
+    "source_type": "user",
+    "source_ref": "/mnt/c/mybizz/mybizz-config-docs/facts/2026-09-14-denial-re-execution-standard.md",
+    "writer_identity": "manual_submission",
+    "derived_from": null,
+    "policy_version": "v1",
+    "lineage_hash": "d9d330f0b94cb79cd50b020ca3562568b37f4d6337757eb11fd863bba7708d0e"
+  },
+  "timestamps": {
+    "created_at": "2026-09-14T22:25:40.902196+02:00",
+    "updated_at": "2026-09-14T22:25:40.902196+02:00",
+    "valid_from": null,
+    "valid_until": null,
+    "valid_until_reason": null
+  },
+  "confidence": {
+    "score": 0.9,
+    "method": "model_based"
+  },
+  "policy": {
+    "risk_level": "medium",
+    "decision_path": "needs_review",
+    "requires_human_review": true,
+    "allowed_actions": [
+      "promote",
+      "quarantine",
+      "reject"
+    ],
+    "classification": "scope_invalid",
+    "recommended_action": "quarantine"
+  },
+  "status": "promoted",
+  "supersedes_id": null,
+  "contradiction": null,
+  "review": {
+    "recommendation": "Policy engine flagged this fact candidate for human review (risk=medium). No automatic action taken.",
+    "validation": "risk_level=medium; confidence=0.9",
+    "ramifications": "No supersession or cross-project sharing effects"
+  },
+  "audit": {
+    "decision_by": "dev-p",
+    "decision_at": null,
+    "decision_reason": "World-visibility correction of GBrain fact #53; content developer-approved at the 2026-09-14 close-out",
+    "reviewer": "dev-p"
+  }
+}
