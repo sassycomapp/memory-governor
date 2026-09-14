@@ -1,0 +1,58 @@
+{
+  "memory_id": "6c12b7a4-31c1-433b-8225-231c9a09dc61",
+  "owning_project": "mybizz-config-docs",
+  "agent_id": null,
+  "session_id": null,
+  "scope": {
+    "visibility": "project_local",
+    "retention": "long_term",
+    "authority": null,
+    "owning_project": "mybizz-config-docs",
+    "shared_with": []
+  },
+  "memory_type": "fact",
+  "subject": null,
+  "content": {
+    "text": "---\ntype: session-summary\ntitle: 'Session 2026-09-14 — Configuration Management: gbrain-dream-cycle'\ndate: '2026-09-14T00:00:00.000Z'\nsession: 2026-09-14-001\ndocument: >-\n  Session Summary — 2026-09-14 Config-Management: gbrain-dream-cycle built, run,\n  verified\ningested_via: 'mcp:put_page'\ningested_at: '2026-09-14T14:22:21.680Z'\nsource_kind: 'mcp:put_page'\n---\n\n# Session 2026-09-14 — Configuration Management: gbrain-dream-cycle\n\n## What was done\n\n**The dream cycle's configuration-management suite was built, installed, run, and verified healthy — the fifth system under standing config management.**\n\n- Suite built to the 8-file standard (config/exam-plan/exam-report/log/learnings/explainer/reference + skill source) in `mybizz-config-docs/gbrain-dream-cycle/`; log seeded from documented history (overlap trap, autopilot removal, silent extract_atoms outage, MEMORY_VERBS reconciliation, acceptance run); explainer localized (Config-maintenance §8, S.W.O.T. §9, companions); reference header extended.\n- Skill `mb-config-gbrain-dream-cycle` written born-with-inventory (Tiers 0–3, DC0-1…DC3-2), installed by copy via mg-grant, hash pair verified, register flipped WIP→Installed.\n- Run #1 formal (plan-driven, bootstrap): **HEALTHY — all checks PASS, zero live defects.** Step-0 5/5 hash pairs via the approved glob form. Developer-verified items recorded verbatim: Anthropic credential valid (`message`), `mcp_surface` absent (`false`).\n- DC2 functional probes PASS: orphans single-phase (`.phase` field proven; 1,008/1,886 warn = healthy report-only), suspected-contradictions (0 contradictions, $0.03).\n- **DC3-1 (developer-unlocked): full dream cycle ran live — EXIT 0, ~13 min, all 23 phases in documented order (11 ok / 12 legitimate skips / 1 orphans-warn / 0 failures); +124 pages → 2,010 (100% embedded); 90 atoms (201-page backlog drained); 126 concepts; 34 takes; 0 contradictions (1 benign supersession).** W-3 stamping mechanism confirmed live. DC3-2: stay on 0.46.1.0 — no check failed, upgrade never on newness.\n\n## Quirks found and their dispositions\n\n- **F-1 (exam-method, zero damage):** an improvised bare `gbrain dream --phase` probe started an unplanned full cycle; the probe's `head -3` pipe killed it via SIGPIPE mid-flight. Verified undamaged (no stamps, no locks, no corruption). Hardening graduated into the skill (never probe `--phase` bare; only `--source` parse-fails safely; never pipe live output to a truncating consumer).\n- **F-2 (backup second lane, developer-approved):** 122 dream-synthesized concept pages are DB-only (single backup line). Resolution: `gbrain export` joins the weekly backup routine, destination `C:\\backup-dream-cycle`; row applied to `postgresql-config.md` §Backups.\n- **Governance corrections applied (developer-approved):** stale build-status fixed in config-manager reference/config/agent files; master-explainer updated at close-out (standing rule) including the version-note correction (0.50.0.0 available per live banner; earlier 0.48.x notes were stale).\n- **Guard denials honored:** token-literal command text (step-0 — approved glob form used), sensitive-data + outbound-network on the validity curl (→ developer bundle), sensitive-file *.md blocks on session-procedure and sessions-log reads (→ followed AGENTS.md procedure text directly).\n\n## Artifacts\n\n- Register: gbrain-dream-cycle Installed, hash `a4872e9d61f1c32f`, verified live 2026-09-14\n- `config-setup-prompt.md` created in mb-config-manager — the standing generic task instruction for all future suite builds (Phase 0–5 + standing rules; paste-ready prompt)\n- Session summary page: GBrain `sessions/2026-09-14-001-dream-cycle-config-mgmt`\n\n## Open / next\n\n- Developer: commit+push both repos (config-docs incl. memory-governor log row; os-docs master-explainer as own commit — developer runs git, agent blocked by guard), then re-run sync+embed so the brain embeds today's work (current sync pulled pre-commit GitHub state — brain pages still show the old WIP register row).\n- Next system per memory family: graphify → then mb-submit-memory (config-setup-prompt.md is the entry point).\n- Pending developer decisions carried: none blocking.\n",
+    "structured": null
+  },
+  "provenance": {
+    "source_type": "user",
+    "source_ref": "/mnt/c/mybizz/mybizz-config-docs/sessions/2026-09-14-001-dream-cycle-config-mgmt.md",
+    "writer_identity": "manual_submission",
+    "derived_from": null,
+    "policy_version": "v1",
+    "lineage_hash": "c60f68e3b81ed869cf641294af1ab957269bfde6057361a1ce43ab556ef976c2"
+  },
+  "timestamps": {
+    "created_at": "2026-09-14T16:57:12.491470+02:00",
+    "updated_at": "2026-09-14T16:57:12.491470+02:00",
+    "valid_from": null,
+    "valid_until": null,
+    "valid_until_reason": null
+  },
+  "confidence": {
+    "score": 0.95,
+    "method": "model_based"
+  },
+  "policy": {
+    "risk_level": "low",
+    "decision_path": "auto_promote",
+    "requires_human_review": false,
+    "allowed_actions": [
+      "promote"
+    ],
+    "classification": null,
+    "recommended_action": null
+  },
+  "status": "promoted",
+  "supersedes_id": null,
+  "contradiction": null,
+  "review": null,
+  "audit": {
+    "decision_by": "governor",
+    "decision_at": null,
+    "decision_reason": "policy engine: auto_promote",
+    "reviewer": null
+  }
+}
