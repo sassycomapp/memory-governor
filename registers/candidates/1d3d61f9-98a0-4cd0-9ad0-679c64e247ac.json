@@ -1,0 +1,58 @@
+{
+  "memory_id": "1d3d61f9-98a0-4cd0-9ad0-679c64e247ac",
+  "owning_project": "mybizz-config-docs",
+  "agent_id": null,
+  "session_id": null,
+  "scope": {
+    "visibility": "project_local",
+    "retention": "long_term",
+    "authority": null,
+    "owning_project": "mybizz-config-docs",
+    "shared_with": []
+  },
+  "memory_type": "fact",
+  "subject": null,
+  "content": {
+    "text": "---\ndocument: \"Durable fact — Graphify rebuild provenance stamping (cwd)\"\ndoc-id: fact-graphify-cwd-provenance\nstate: Live\ndate-created: 2026-09-14\n---\n\n# Durable fact — Graphify rebuild provenance stamping\n\n`graphify extract` stamps the graph's `built_at_commit` from the invoking\nworking directory's git repository, not from the scanned repository path.\nEvery Graphify rebuild (`extract`, `cluster-only`) must therefore be run\nfrom inside the target repository root, and the rebuild procedure's final\nprovenance-confirmation step (`built_at_commit` == `git rev-parse HEAD`)\nis mandatory, never optional.\n\nProven live 2026-09-14 during the graphify configuration-management run #1\n(finding F-4): a full documented rebuild of the mb-3-cs graph, executed\nfrom the mybizz-config-docs working directory, stamped that repo's HEAD\ncommit (`1194ea9…`) onto the mb-3-cs graph; the verification step caught\nthe mis-stamp, and the corrected rebuild from the mb-3-cs root stamped\nprovenance correctly (`59175d9e…` == HEAD). The `graphify update` path\nstamps from the scanned path. Permanent homes: `graphify-config.md`\n§Open items; `graphify-reference.md` §Graph build procedures;\nthe `mb-config-graphify` skill's hard behavioral rules.\n",
+    "structured": null
+  },
+  "provenance": {
+    "source_type": "user",
+    "source_ref": "/mnt/c/mybizz/mybizz-config-docs/facts/2026-09-14-graphify-cwd-provenance.md",
+    "writer_identity": "manual_submission",
+    "derived_from": null,
+    "policy_version": "v1",
+    "lineage_hash": "c7782fc67bd302851f406caec03628b6479840e771919aabe3b8a7d1299094cf"
+  },
+  "timestamps": {
+    "created_at": "2026-09-14T22:14:33.717508+02:00",
+    "updated_at": "2026-09-14T22:14:33.717508+02:00",
+    "valid_from": null,
+    "valid_until": null,
+    "valid_until_reason": null
+  },
+  "confidence": {
+    "score": 0.9,
+    "method": "model_based"
+  },
+  "policy": {
+    "risk_level": "low",
+    "decision_path": "auto_promote",
+    "requires_human_review": false,
+    "allowed_actions": [
+      "promote"
+    ],
+    "classification": null,
+    "recommended_action": null
+  },
+  "status": "promoted",
+  "supersedes_id": null,
+  "contradiction": null,
+  "review": null,
+  "audit": {
+    "decision_by": "governor",
+    "decision_at": null,
+    "decision_reason": "policy engine: auto_promote",
+    "reviewer": null
+  }
+}
