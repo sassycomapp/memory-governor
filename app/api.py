@@ -29,6 +29,7 @@ from .rendering import render_review_queue
 ALLOWED_SOURCE_ROOTS = [
     Path("/mnt/c/dev").resolve(),
     Path("/home/dev-p/memory-governor").resolve(),
+    Path("/mnt/c/mybizz").resolve(),
 ]
 
 
