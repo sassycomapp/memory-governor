@@ -1,0 +1,64 @@
+{
+  "memory_id": "d731a6eb-5ca9-4494-ac57-b40c7298ce96",
+  "owning_project": "mybizz-config-docs",
+  "agent_id": null,
+  "session_id": null,
+  "scope": {
+    "visibility": "shared_all",
+    "retention": "long_term",
+    "authority": null,
+    "owning_project": "mybizz-config-docs",
+    "shared_with": []
+  },
+  "memory_type": "fact",
+  "subject": null,
+  "content": {
+    "text": "---\ndocument: \"Fact — memory governor auto-start installed and verified\"\ndoc-id: fact-memory-governor-auto-start\nstate: Live\ndate-created: 2026-09-15\n---\n\n# Fact — memory governor auto-start installed and verified\n\nThe memory governor's **permanent auto-start is installed and verified\n(2026-09-15, session 005)** — the system is restart-independent:\n\n- WSL systemd enabled (`systemd=true` under the existing `[boot]` section of\n  `/etc/wsl.conf`; the prior boot command preserved — PostgreSQL auto-starts\n  and the start script remains idempotent).\n- Two systemd user units, placed 2026-09-13 and enabled 2026-09-15, both\n  **active** with `Restart=on-failure`: `memory-governor-api` (uvicorn on\n  127.0.0.1:8321) and `memory-governor-worker` (outbox LISTEN/NOTIFY).\n- Verified live post-switchover: port 8321 held by the service's process,\n  auth-gate 422, both processes under the user manager's CGroup.\n\nContext: at the migration boot the boot script started the API but not the\nworker (no worker log written) — the exact flakiness class the migration\neliminates; the worker now self-heals under its unit. The start script's\nidempotent skip (finding both services already running) proves itself at the\nnext natural restart — standing-check territory, not an open item. Unit\ndefinitions: `memory-governor-reference.md` §Permanent auto-start migration\n(executed + verified 2026-09-15). Previously approved 2026-09-08; units\nplaced 2026-09-13.\n",
+    "structured": null
+  },
+  "provenance": {
+    "source_type": "user",
+    "source_ref": "/mnt/c/mybizz/mybizz-config-docs/facts/2026-09-15-memory-governor-auto-start-verified.md",
+    "writer_identity": "manual_submission",
+    "derived_from": null,
+    "policy_version": "v1",
+    "lineage_hash": "33eccb34b65d0f3f66dc1d3edcf3b75191f7fbd923d80a30fde421891cacb39b"
+  },
+  "timestamps": {
+    "created_at": "2026-09-15T11:40:56.778659+02:00",
+    "updated_at": "2026-09-15T11:40:56.778659+02:00",
+    "valid_from": null,
+    "valid_until": null,
+    "valid_until_reason": null
+  },
+  "confidence": {
+    "score": 0.9,
+    "method": "model_based"
+  },
+  "policy": {
+    "risk_level": "medium",
+    "decision_path": "needs_review",
+    "requires_human_review": true,
+    "allowed_actions": [
+      "promote",
+      "quarantine",
+      "reject"
+    ],
+    "classification": "scope_invalid",
+    "recommended_action": "quarantine"
+  },
+  "status": "promoted",
+  "supersedes_id": null,
+  "contradiction": null,
+  "review": {
+    "recommendation": "Policy engine flagged this fact candidate for human review (risk=medium). No automatic action taken.",
+    "validation": "risk_level=medium; confidence=0.9",
+    "ramifications": "No supersession or cross-project sharing effects"
+  },
+  "audit": {
+    "decision_by": "dev-p",
+    "decision_at": null,
+    "decision_reason": "approved at the 2026-09-15 close-out gate (session 005)",
+    "reviewer": "dev-p"
+  }
+}
