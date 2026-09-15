@@ -1,0 +1,64 @@
+{
+  "memory_id": "d56891c5-06aa-4b65-abe7-5183049840bf",
+  "owning_project": "mybizz-config-docs",
+  "agent_id": null,
+  "session_id": null,
+  "scope": {
+    "visibility": "shared_all",
+    "retention": "long_term",
+    "authority": null,
+    "owning_project": "mybizz-config-docs",
+    "shared_with": []
+  },
+  "memory_type": "fact",
+  "subject": null,
+  "content": {
+    "text": "---\ndocument: \"Fact — grant discipline: request, never self-grant\"\ndoc-id: fact-grant-discipline\nstate: Live\ndate-created: 2026-09-15\n---\n\n# Fact — grant discipline: request, never self-grant\n\nStanding rule (developer instruction, 2026-09-15, session 003–005; encoded in\nthe config-setup-prompt.md clarity-discipline amendment): **when Cupcake\nblocks an operation, the agent requests the grant from the developer in the\nchat interface and does nothing else.** An agent never issues a grant request\nand then grants the authority itself — that situation may not occur. The\ndeveloper executes the grant in the WSL terminal and returns the result to\nthe agent in chat.\n\nPrescribed commands (developer-run):\n- `mg-grant --path <folder> --count N`\n- `mg-revoke --path <folder>`\n- `net-grant --domain <domain> --count NN`\n- `net-revoke --domain <domain>`\n\nRelated disciplines proven this session: grant counts are requested to match\nthe work actually needed; a denied item is never retried (same shape or\nreshaped) — it becomes a developer-run command with its exact text, and\nresults return verbatim as developer-verified.\n",
+    "structured": null
+  },
+  "provenance": {
+    "source_type": "user",
+    "source_ref": "/mnt/c/mybizz/mybizz-config-docs/facts/2026-09-15-grant-discipline-request-never-self-grant.md",
+    "writer_identity": "manual_submission",
+    "derived_from": null,
+    "policy_version": "v1",
+    "lineage_hash": "55c54ca8349ed3b0301d28613a11ccd14105d8a303ce8486fa2a3ca84cb5011e"
+  },
+  "timestamps": {
+    "created_at": "2026-09-15T11:40:56.655886+02:00",
+    "updated_at": "2026-09-15T11:40:56.655886+02:00",
+    "valid_from": null,
+    "valid_until": null,
+    "valid_until_reason": null
+  },
+  "confidence": {
+    "score": 0.9,
+    "method": "model_based"
+  },
+  "policy": {
+    "risk_level": "medium",
+    "decision_path": "needs_review",
+    "requires_human_review": true,
+    "allowed_actions": [
+      "promote",
+      "quarantine",
+      "reject"
+    ],
+    "classification": "scope_invalid",
+    "recommended_action": "quarantine"
+  },
+  "status": "promoted",
+  "supersedes_id": null,
+  "contradiction": null,
+  "review": {
+    "recommendation": "Policy engine flagged this fact candidate for human review (risk=medium). No automatic action taken.",
+    "validation": "risk_level=medium; confidence=0.9",
+    "ramifications": "No supersession or cross-project sharing effects"
+  },
+  "audit": {
+    "decision_by": "dev-p",
+    "decision_at": null,
+    "decision_reason": "approved at the 2026-09-15 close-out gate (session 005)",
+    "reviewer": "dev-p"
+  }
+}
