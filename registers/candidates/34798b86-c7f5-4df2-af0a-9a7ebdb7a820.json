@@ -1,0 +1,64 @@
+{
+  "memory_id": "34798b86-c7f5-4df2-af0a-9a7ebdb7a820",
+  "owning_project": "mybizz-config-docs",
+  "agent_id": null,
+  "session_id": null,
+  "scope": {
+    "visibility": "shared_all",
+    "retention": "long_term",
+    "authority": null,
+    "owning_project": "mybizz-config-docs",
+    "shared_with": []
+  },
+  "memory_type": "fact",
+  "subject": null,
+  "content": {
+    "text": "---\ndocument: \"Fact — data-mybizz-mgt folder rename (underscore dropped)\"\ndoc-id: fact-data-mybizz-mgt-folder-rename\nstate: Live\ndate-created: 2026-09-15\n---\n\n# Fact — data-mybizz-mgt folder rename (underscore dropped)\n\nThe Mybizz management data folder is `C:\\data-mybizz-mgt`. It was renamed\nfrom `C:\\_data-mybizz-mgt` on 2026-09-15 by developer decision; the leading\nunderscore was dropped because it is invalid in GBrain source ids\n(`[a-z0-9-]`) and awkward everywhere else (approved by the developer:\n\"just drop the underscore and save us a lot of trouble later\").\n\nConsequences that must be trusted without re-checking:\n\n- The old path `C:\\_data-mybizz-mgt` (WSL `/mnt/c/_data-mybizz-mgt`) is\n  **dead**. Any reference to it — in docs, configs, skills, or procedures —\n  is stale until the document-management skills sweep it.\n- Canonical homes for the new state: `_desktop/repo-organization.md`\n  (repo/source/path correlation table), `_desktop/mybizz-scope-list.md`\n  (in-scope root + GitHub repo list), and the folder `README.md` naming note.\n\nContext: session 2026-09-15-001\n(`sessions/2026-09-15-001-data-mybizz-mgt-repo-registration`). Registered\nend-to-end the same day: GitHub `sassycomapp/data-mybizz-mgt` (private,\nmaster), GBrain source `data-mybizz-mgt` (federated), opencode\n`external_directory` allow.\n\nConfidence 0.95, method model_based. Approved at the 2026-09-15 close-out\ngate (governed routing).\n",
+    "structured": null
+  },
+  "provenance": {
+    "source_type": "user",
+    "source_ref": "/mnt/c/mybizz/mybizz-config-docs/facts/2026-09-15-data-mybizz-mgt-folder-rename.md",
+    "writer_identity": "manual_submission",
+    "derived_from": null,
+    "policy_version": "v1",
+    "lineage_hash": "5e9b8950411833a14a598e52c02163bc3f4b8027351037bf54dd0767b712e662"
+  },
+  "timestamps": {
+    "created_at": "2026-09-15T07:25:19.927580+02:00",
+    "updated_at": "2026-09-15T07:25:19.927580+02:00",
+    "valid_from": null,
+    "valid_until": null,
+    "valid_until_reason": null
+  },
+  "confidence": {
+    "score": 0.95,
+    "method": "model_based"
+  },
+  "policy": {
+    "risk_level": "medium",
+    "decision_path": "needs_review",
+    "requires_human_review": true,
+    "allowed_actions": [
+      "promote",
+      "quarantine",
+      "reject"
+    ],
+    "classification": "scope_invalid",
+    "recommended_action": "quarantine"
+  },
+  "status": "promoted",
+  "supersedes_id": null,
+  "contradiction": null,
+  "review": {
+    "recommendation": "Policy engine flagged this fact candidate for human review (risk=medium). No automatic action taken.",
+    "validation": "risk_level=medium; confidence=0.95",
+    "ramifications": "No supersession or cross-project sharing effects"
+  },
+  "audit": {
+    "decision_by": "dev-p",
+    "decision_at": null,
+    "decision_reason": "approved at the 2026-09-15 close-out gate",
+    "reviewer": "dev-p"
+  }
+}
