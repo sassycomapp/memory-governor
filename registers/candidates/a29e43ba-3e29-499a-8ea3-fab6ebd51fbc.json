@@ -1,0 +1,64 @@
+{
+  "memory_id": "a29e43ba-3e29-499a-8ea3-fab6ebd51fbc",
+  "owning_project": "mybizz-config-docs",
+  "agent_id": null,
+  "session_id": null,
+  "scope": {
+    "visibility": "shared_all",
+    "retention": "long_term",
+    "authority": null,
+    "owning_project": "mybizz-config-docs",
+    "shared_with": []
+  },
+  "memory_type": "fact",
+  "subject": null,
+  "content": {
+    "text": "---\ndocument: \"Fact — session numbers come from the sessions log\"\ndoc-id: fact-session-numbers-from-log\nstate: Live\ndate-created: 2026-09-15\n---\n\n# Fact — session numbers come from the sessions log\n\nSession numbers are defined by the developer's sessions log\n(`C:\\data-mybizz-mgt\\_desktop\\sessions-log.md`) — never inferred from dates,\ncommit messages, or the GBrain page-name convention. Recording a session\nunder the wrong number marks the log incorrectly (developer instruction,\n2026-09-15, session 005).\n\nConcrete case: the mb-submit-memory configuration-management work began in\n**session 003** and completed in **session 005** (2026-09-15); all close-out\nrecords — the GBrain session page, the sessions-log row, and commit messages\n— name it session 005, never session 003, regardless of when the task\nstarted. The GBrain page name carries its own date (`sessions/YYYY-MM-DD-…`)\nper the naming convention; the number in the log is the authoritative session\nidentity.\n",
+    "structured": null
+  },
+  "provenance": {
+    "source_type": "user",
+    "source_ref": "/mnt/c/mybizz/mybizz-config-docs/facts/2026-09-15-session-numbers-from-sessions-log.md",
+    "writer_identity": "manual_submission",
+    "derived_from": null,
+    "policy_version": "v1",
+    "lineage_hash": "9db10bcdfe6e59f85c9609d90922127d096242ae50b05ef412fc91d2f0f25ec9"
+  },
+  "timestamps": {
+    "created_at": "2026-09-15T11:40:56.880170+02:00",
+    "updated_at": "2026-09-15T11:40:56.880170+02:00",
+    "valid_from": null,
+    "valid_until": null,
+    "valid_until_reason": null
+  },
+  "confidence": {
+    "score": 0.9,
+    "method": "model_based"
+  },
+  "policy": {
+    "risk_level": "medium",
+    "decision_path": "needs_review",
+    "requires_human_review": true,
+    "allowed_actions": [
+      "promote",
+      "quarantine",
+      "reject"
+    ],
+    "classification": "scope_invalid",
+    "recommended_action": "quarantine"
+  },
+  "status": "promoted",
+  "supersedes_id": null,
+  "contradiction": null,
+  "review": {
+    "recommendation": "Policy engine flagged this fact candidate for human review (risk=medium). No automatic action taken.",
+    "validation": "risk_level=medium; confidence=0.9",
+    "ramifications": "No supersession or cross-project sharing effects"
+  },
+  "audit": {
+    "decision_by": "dev-p",
+    "decision_at": null,
+    "decision_reason": "approved at the 2026-09-15 close-out gate (session 005)",
+    "reviewer": "dev-p"
+  }
+}
