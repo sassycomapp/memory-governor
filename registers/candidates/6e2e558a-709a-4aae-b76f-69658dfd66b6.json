@@ -1,0 +1,64 @@
+{
+  "memory_id": "6e2e558a-709a-4aae-b76f-69658dfd66b6",
+  "owning_project": "mybizz-config-docs",
+  "agent_id": null,
+  "session_id": null,
+  "scope": {
+    "visibility": "shared_all",
+    "retention": "long_term",
+    "authority": null,
+    "owning_project": "mybizz-config-docs",
+    "shared_with": []
+  },
+  "memory_type": "fact",
+  "subject": null,
+  "content": {
+    "text": "---\ndocument: \"Fact — OpenCode resolved-config stdout is secret-bearing\"\ndoc-id: fact-opencode-resolved-config-secrets\nstate: Live\ndate-created: 2026-09-15\n---\n\n# Fact — OpenCode resolved-config stdout is secret-bearing\n\n`opencode debug config` resolves and prints the fully merged configuration —\nand in doing so it **replaces `{env:...}` placeholders with literal environment\nvalues**. The source config file (`~/.config/opencode/opencode.jsonc`) correctly\nholds `{env:OPENAI_API_KEY}` / `{env:ZEROENTROPY_API_KEY}` placeholders, never\nliterals; the resolved stdout carries the real keys.\n\nVerified live 2026-09-15 (mb-config-opencode run #1): the developer's returned\n`opencode debug config` output contained the resolved `OPENAI_API_KEY` and\n`ZEROENTROPY_API_KEY` values. The values are not reproduced here.\n\n## Consequences (binding)\n\n- **Treat `opencode debug config` stdout as secret-bearing.** Never paste it\n  into shared contexts, never commit it, never echo it in chat or reports.\n- **Never retain a capture.** If the command's output must be captured, select\n  only the needed non-secret fields and delete the capture immediately.\n- **Field extraction is a permanent sensitive-data guard class.** This is why\n  the mb-config-opencode exam treats every config-content field check as\n  developer-run: the agent's own capture is guard-denied after the fact, and\n  the values must never enter agent-managed artifacts.\n- **The guard-denial that protects this is correct, not an obstacle.**\n\n## Source\n\n- `opencode/opencode-exam-report.md` — run #1, finding F-6 (2026-09-15)\n- `opencode/opencode-skill.md` — credential discipline + graduated lesson:\n  config-content field checks are runner D (developer-run)\n- Session page: `sessions/2026-09-15-007-opencode-config-suite`",
+    "structured": null
+  },
+  "provenance": {
+    "source_type": "user",
+    "source_ref": "/mnt/c/mybizz/mybizz-config-docs/facts/2026-09-15-opencode-resolved-config-secrets.md",
+    "writer_identity": "manual_submission",
+    "derived_from": null,
+    "policy_version": "v1",
+    "lineage_hash": "acc168d28a6390654d07978f9e4c371a576dad5dab1a60f74a8aedd3521d1786"
+  },
+  "timestamps": {
+    "created_at": "2026-09-16T06:03:52.330915+02:00",
+    "updated_at": "2026-09-16T06:03:52.330915+02:00",
+    "valid_from": null,
+    "valid_until": null,
+    "valid_until_reason": null
+  },
+  "confidence": {
+    "score": 0.9,
+    "method": "model_based"
+  },
+  "policy": {
+    "risk_level": "medium",
+    "decision_path": "needs_review",
+    "requires_human_review": true,
+    "allowed_actions": [
+      "promote",
+      "quarantine",
+      "reject"
+    ],
+    "classification": "scope_invalid",
+    "recommended_action": "quarantine"
+  },
+  "status": "promoted",
+  "supersedes_id": null,
+  "contradiction": null,
+  "review": {
+    "recommendation": "Policy engine flagged this fact candidate for human review (risk=medium). No automatic action taken.",
+    "validation": "risk_level=medium; confidence=0.9",
+    "ramifications": "No supersession or cross-project sharing effects"
+  },
+  "audit": {
+    "decision_by": "dev-p",
+    "decision_at": null,
+    "decision_reason": "approved at the 2026/09/15 close-out gate, session 007",
+    "reviewer": "dev-p"
+  }
+}
