@@ -1,0 +1,64 @@
+{
+  "memory_id": "2951686a-b9a3-4c56-929f-4e6b0d476c03",
+  "owning_project": "mybizz-config-docs",
+  "agent_id": null,
+  "session_id": null,
+  "scope": {
+    "visibility": "shared_all",
+    "retention": "long_term",
+    "authority": null,
+    "owning_project": "mybizz-config-docs",
+    "shared_with": []
+  },
+  "memory_type": "fact",
+  "subject": null,
+  "content": {
+    "text": "---\ndocument: \"Durable fact — Config-manager open items are closed directly when the developer asks\"\ndoc-id: fact-2026-09-16-config-manager-close-items-directly\nstate: Live\ndate-created: 2026-09-16\n---\n\n# Durable fact — Config-manager open items are closed directly when the developer asks\n\nConfig-manager open items that the developer asks to be closed are resolved\ndirectly, never left as \"flagged to docs governance\" rows. A direct closure has\nthree parts, all applied to the suite's own documents: the spec's stale rows are\ncorrected to the verified live values, an evidence-backed disposition is written\ninto the config.md open-items table itself, and where a missing review was the\ngap (e.g. a supply-chain licensing axis), the review is performed and recorded on\nthe spot rather than deferred.\n\nThe \"flagged to docs governance\" path remains the standing default for drift the\ndeveloper has not approved for correction — it is the fallback, never a terminal\nstate for an item the developer has explicitly asked to be closed.\n\nEstablished 2026-09-16 on the anvil-agent-references config-management run #1\nclosure, where the developer directed the session: \"sort out this fucking shit\nnow\" after the initial gate dispositions left W-1..W-5 as governance-flag rows.\nAll five items were then closed by direct resolution — the spec details were\ncorrected to live state, an adoption review was performed and recorded for the\nlicense axis, and each item received a dated, evidenced disposition. This is\nconsistent with the session-005 standard \"flags are not resolutions — correct\nthe record.\"\n\nPermanent homes: `config-setup-prompt.md` Amendment (clarity discipline — open\nissues are never left open); the anvil-agent-references config-manager suite's\nopen-items table and adoption-review section.",
+    "structured": null
+  },
+  "provenance": {
+    "source_type": "user",
+    "source_ref": "/mnt/c/mybizz/mybizz-config-docs/facts/2026-09-16-config-manager-close-items-directly.md",
+    "writer_identity": "manual_submission",
+    "derived_from": null,
+    "policy_version": "v1",
+    "lineage_hash": "9c7250be8e8b5a0db18d2e8973d13aa7703fdd0ff63b75638f9ada5d3d767dc8"
+  },
+  "timestamps": {
+    "created_at": "2026-09-16T14:14:02.214035+02:00",
+    "updated_at": "2026-09-16T14:14:02.214035+02:00",
+    "valid_from": null,
+    "valid_until": null,
+    "valid_until_reason": null
+  },
+  "confidence": {
+    "score": 0.9,
+    "method": "model_based"
+  },
+  "policy": {
+    "risk_level": "medium",
+    "decision_path": "needs_review",
+    "requires_human_review": true,
+    "allowed_actions": [
+      "promote",
+      "quarantine",
+      "reject"
+    ],
+    "classification": "scope_invalid",
+    "recommended_action": "quarantine"
+  },
+  "status": "promoted",
+  "supersedes_id": null,
+  "contradiction": null,
+  "review": {
+    "recommendation": "Policy engine flagged this fact candidate for human review (risk=medium). No automatic action taken.",
+    "validation": "risk_level=medium; confidence=0.9",
+    "ramifications": "No supersession or cross-project sharing effects"
+  },
+  "audit": {
+    "decision_by": "dev-p",
+    "decision_at": null,
+    "decision_reason": "approved at the 2026-09-16 close-out gate",
+    "reviewer": "dev-p"
+  }
+}
