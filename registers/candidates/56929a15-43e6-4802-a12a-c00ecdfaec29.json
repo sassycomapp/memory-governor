@@ -1,0 +1,58 @@
+{
+  "memory_id": "56929a15-43e6-4802-a12a-c00ecdfaec29",
+  "owning_project": "mybizz-config-docs",
+  "agent_id": null,
+  "session_id": null,
+  "scope": {
+    "visibility": "project_local",
+    "retention": "long_term",
+    "authority": null,
+    "owning_project": "mybizz-config-docs",
+    "shared_with": []
+  },
+  "memory_type": "fact",
+  "subject": null,
+  "content": {
+    "text": "---\ndocument: \"Fact — GStack artifact location and the missing gstack-outputs lane\"\ndoc-id: fact-gstack-artifact-location\nstate: Live\ndate-created: 2026-09-16\n---\n\n# Fact — GStack artifact location and the missing gstack-outputs lane\n\nGStack skills save all their output to a per-project directory under the user\nhome:\n\n    ~/.gstack/projects/$SLUG/\n\nwhere `$SLUG` is the deterministic per-repo project slug produced by\n`gstack-slug` (example, this config-docs repo: `sassycomapp-mybizz-config-docs`).\nLater skills find prior output by re-computing the same slug and reading the\nknown skill sub-directory (`ceo-plans/`, `designs/`, `retros/`, `qa-reports/`,\n`.context/`, etc.), plus `/context-restore` and project-keyed\n`learnings.jsonl` / `timeline.jsonl`.\n\nThe AGENTS.md `gstack-outputs/` repo-visible copy lane is a **convention only —\nit does not exist anywhere on this system**, except inside backup folders\n(out of scope). Verified 2026-09-16: no `gstack-outputs/` folder exists in any\nproject root; the earlier config claim \"confirmed live in\n`mb5pdlf-project-library`\" was falsified (folder absent there). Never rely on a\nrepo-side copy; `~/.gstack/projects/$SLUG/` is the sole authoritative artifact\nlocation.\n\nFull annotated record: `gstack-reference.md` §Artifact locations.",
+    "structured": null
+  },
+  "provenance": {
+    "source_type": "user",
+    "source_ref": "/mnt/c/mybizz/mybizz-config-docs/facts/2026-09-16-gstack-artifact-location.md",
+    "writer_identity": "manual_submission",
+    "derived_from": null,
+    "policy_version": "v1",
+    "lineage_hash": "56365fc51063b171aefee395fcac4226bc504f76fa953b9b8e2d882b8c636765"
+  },
+  "timestamps": {
+    "created_at": "2026-09-16T08:36:24.783711+02:00",
+    "updated_at": "2026-09-16T08:36:24.783711+02:00",
+    "valid_from": null,
+    "valid_until": null,
+    "valid_until_reason": null
+  },
+  "confidence": {
+    "score": 0.9,
+    "method": "model_based"
+  },
+  "policy": {
+    "risk_level": "low",
+    "decision_path": "auto_promote",
+    "requires_human_review": false,
+    "allowed_actions": [
+      "promote"
+    ],
+    "classification": null,
+    "recommended_action": null
+  },
+  "status": "promoted",
+  "supersedes_id": null,
+  "contradiction": null,
+  "review": null,
+  "audit": {
+    "decision_by": "governor",
+    "decision_at": null,
+    "decision_reason": "policy engine: auto_promote",
+    "reviewer": null
+  }
+}
