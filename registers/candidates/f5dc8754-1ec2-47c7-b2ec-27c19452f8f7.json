@@ -1,0 +1,58 @@
+{
+  "memory_id": "f5dc8754-1ec2-47c7-b2ec-27c19452f8f7",
+  "owning_project": "mybizz-config-docs",
+  "agent_id": null,
+  "session_id": null,
+  "scope": {
+    "visibility": "project_local",
+    "retention": "long_term",
+    "authority": null,
+    "owning_project": "mybizz-config-docs",
+    "shared_with": []
+  },
+  "memory_type": "fact",
+  "subject": null,
+  "content": {
+    "text": "---\ndocument: \"Durable fact — Quarantine definition (developer ruling 2026-09-20)\"\ndoc-id: 2026-09-20-quarantine-definition\nstate: Live\ndate-created: 2026-09-20\n---\n\n# Durable fact — Quarantine definition\n\nQuarantine holds retired-but-valuable documents: content marked obsolete and\nremoved from the corpus whose information is still needed and still cited.\nA quarantined document is no longer part of the live corpus but remains\nreferenceable. Supersedes the interpretation of quarantine as a mechanism for\nblocking cross-project references.\n",
+    "structured": null
+  },
+  "provenance": {
+    "source_type": "user",
+    "source_ref": "/mnt/c/mybizz/mybizz-config-docs/facts/2026-09-20-quarantine-definition.md",
+    "writer_identity": "manual_submission",
+    "derived_from": null,
+    "policy_version": "v1",
+    "lineage_hash": "43507856d26bd576430ba18db66a511f740c575f01abdc73add3ec7762e11fa2"
+  },
+  "timestamps": {
+    "created_at": "2026-09-21T12:21:44.715609+02:00",
+    "updated_at": "2026-09-21T12:21:44.715609+02:00",
+    "valid_from": null,
+    "valid_until": null,
+    "valid_until_reason": null
+  },
+  "confidence": {
+    "score": 0.9,
+    "method": "model_based"
+  },
+  "policy": {
+    "risk_level": "low",
+    "decision_path": "auto_promote",
+    "requires_human_review": false,
+    "allowed_actions": [
+      "promote"
+    ],
+    "classification": null,
+    "recommended_action": null
+  },
+  "status": "promoted",
+  "supersedes_id": null,
+  "contradiction": null,
+  "review": null,
+  "audit": {
+    "decision_by": "governor",
+    "decision_at": null,
+    "decision_reason": "policy engine: auto_promote",
+    "reviewer": null
+  }
+}
