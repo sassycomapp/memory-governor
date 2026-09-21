@@ -1,0 +1,58 @@
+{
+  "memory_id": "23970061-2bb3-41cb-9b7e-973b8482fcd4",
+  "owning_project": "mybizz-config-docs",
+  "agent_id": null,
+  "session_id": null,
+  "scope": {
+    "visibility": "project_local",
+    "retention": "long_term",
+    "authority": null,
+    "owning_project": "mybizz-config-docs",
+    "shared_with": []
+  },
+  "memory_type": "fact",
+  "subject": null,
+  "content": {
+    "text": "---\ndocument: \"Durable fact — mb-wikilinks conversion rules (developer-confirmed 2026-09-20)\"\ndoc-id: 2026-09-20-mb-wikilinks-conversion-rules\nstate: Live\ndate-created: 2026-09-20\n---\n\n# Durable fact — mb-wikilinks conversion rules\n\nmb-wikilinks converts document references to [[basename|Display Text]] form\nonly. Never candidates: folder references, URLs, code identifiers, config keys,\ntable/column names, registers, templates, quoted shell command text, and\ncollision basenames — including case-collisions (agents.md ≡ AGENTS.md on\nWindows). Detection and the collision census run against the whole resolver\nuniverse (all registered sources), not the scanned source alone.\n\nDeveloper-stated 2026-09-20 during the mb-wikilinks full run\n(sessions/2026-09-21-012-mb-wikilinks-full-run).\n",
+    "structured": null
+  },
+  "provenance": {
+    "source_type": "user",
+    "source_ref": "/mnt/c/mybizz/mybizz-config-docs/facts/2026-09-20-mb-wikilinks-conversion-rules.md",
+    "writer_identity": "manual_submission",
+    "derived_from": null,
+    "policy_version": "v1",
+    "lineage_hash": "cda503c7f0368ee7e1903533d5ceb53195c70480e1e3179a9d97604ccdbb67f2"
+  },
+  "timestamps": {
+    "created_at": "2026-09-21T12:21:44.185752+02:00",
+    "updated_at": "2026-09-21T12:21:44.185752+02:00",
+    "valid_from": null,
+    "valid_until": null,
+    "valid_until_reason": null
+  },
+  "confidence": {
+    "score": 0.9,
+    "method": "model_based"
+  },
+  "policy": {
+    "risk_level": "low",
+    "decision_path": "auto_promote",
+    "requires_human_review": false,
+    "allowed_actions": [
+      "promote"
+    ],
+    "classification": null,
+    "recommended_action": null
+  },
+  "status": "promoted",
+  "supersedes_id": null,
+  "contradiction": null,
+  "review": null,
+  "audit": {
+    "decision_by": "governor",
+    "decision_at": null,
+    "decision_reason": "policy engine: auto_promote",
+    "reviewer": null
+  }
+}
