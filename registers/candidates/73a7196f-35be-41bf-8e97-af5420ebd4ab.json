@@ -1,0 +1,58 @@
+{
+  "memory_id": "73a7196f-35be-41bf-8e97-af5420ebd4ab",
+  "owning_project": "mybizz-config-docs",
+  "agent_id": null,
+  "session_id": null,
+  "scope": {
+    "visibility": "project_local",
+    "retention": "long_term",
+    "authority": null,
+    "owning_project": "mybizz-config-docs",
+    "shared_with": []
+  },
+  "memory_type": "fact",
+  "subject": null,
+  "content": {
+    "text": "---\ndocument: \"Fact — governance-file edits are developer-terminal even under group approval\"\ndoc-id: 2026-09-23-governance-file-edits-developer-terminal\nstate: Live\ndate-created: 2026-09-23\n---\n\n# Fact — governance-file edits are developer-terminal even under group approval\n\nThe protected-AI-governance-files policy denies any agent edit to AGENTS.md\nregardless of a chat group-approval that names the exact finding: the policy\nrequires the developer's explicit per-file instruction and cannot see chat\napprovals. Working protocol (proven three times, 2026-09-23): hand the\ndeveloper the exact old/new lines; they edit; the agent verifies by diff\nagainst the backup. Never re-attempt the edit and never work around it.\n\nContext: session 015 (`sessions/2026-09-23-015-mb-doccycle-makepdlf-first-cycle`),\nmakepdlf first full cycle (A-1, rule-3 rewording, marker-typo handovers).\nConfidence 1.0, method: three live denials + three verified developer\nself-edits. Approved at the 2026-09-23 close-out gate.\n",
+    "structured": null
+  },
+  "provenance": {
+    "source_type": "user",
+    "source_ref": "/mnt/c/mybizz/mybizz-config-docs/facts/2026-09-23-governance-file-edits-developer-terminal.md",
+    "writer_identity": "manual_submission",
+    "derived_from": null,
+    "policy_version": "v1",
+    "lineage_hash": "7719a33a807395b81f0b7766756086afe151d62fa57af931c450fafcbae660c3"
+  },
+  "timestamps": {
+    "created_at": "2026-09-23T11:57:07.298276+02:00",
+    "updated_at": "2026-09-23T11:57:07.298276+02:00",
+    "valid_from": null,
+    "valid_until": null,
+    "valid_until_reason": null
+  },
+  "confidence": {
+    "score": 0.9,
+    "method": "model_based"
+  },
+  "policy": {
+    "risk_level": "low",
+    "decision_path": "auto_promote",
+    "requires_human_review": false,
+    "allowed_actions": [
+      "promote"
+    ],
+    "classification": null,
+    "recommended_action": null
+  },
+  "status": "promoted",
+  "supersedes_id": null,
+  "contradiction": null,
+  "review": null,
+  "audit": {
+    "decision_by": "governor",
+    "decision_at": null,
+    "decision_reason": "policy engine: auto_promote",
+    "reviewer": null
+  }
+}
