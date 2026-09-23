@@ -1,0 +1,58 @@
+{
+  "memory_id": "90c2bd12-feb8-4f76-89b4-202c2d1ac9ff",
+  "owning_project": "mybizz-config-docs",
+  "agent_id": null,
+  "session_id": null,
+  "scope": {
+    "visibility": "project_local",
+    "retention": "long_term",
+    "authority": null,
+    "owning_project": "mybizz-config-docs",
+    "shared_with": []
+  },
+  "memory_type": "fact",
+  "subject": null,
+  "content": {
+    "text": "---\ndocument: \"Fact — renderings and stencils are not resolvable link targets\"\ndoc-id: 2026-09-23-renderings-stencils-not-link-targets\nstate: Live\ndate-created: 2026-09-23\n---\n\n# Fact — renderings and stencils are not resolvable link targets\n\nRegistered html renderings, .json manifests, and retired stencils are\nregister rows but not brain pages — GBrain never ingests them as pages —\nso their [[...]] references cannot resolve and must NOT convert. The\nPhase-C unresolvable-target rule applies: \"an unresolvable proposed target\nis a finding, not a link.\" (4 pairs dropped on 2026-09-23: a stencil cheat-\nsheet, one html decision tree, one json manifest, in makepdlf.)\n\nCorollary: verify every proposed link target by CLI source-scoped search\n(`gbrain search \"<stem>\" --source <id>`); the MCP get_page cannot see\nsynced source pages and returns page_not_found for pages the CLI finds.\n\nContext: session 015 (`sessions/2026-09-23-015-mb-doccycle-makepdlf-first-cycle`),\nPhase C of the makepdlf cycle. Confidence 1.0, method: live verification ×23\nstems. Approved at the 2026-09-23 close-out gate.\n",
+    "structured": null
+  },
+  "provenance": {
+    "source_type": "user",
+    "source_ref": "/mnt/c/mybizz/mybizz-config-docs/facts/2026-09-23-renderings-stencils-not-link-targets.md",
+    "writer_identity": "manual_submission",
+    "derived_from": null,
+    "policy_version": "v1",
+    "lineage_hash": "bbe67af6f06593d83bd9b4b3a2e2fdf4fd5fd1ed848b0b1a1c08d0ebed1efac4"
+  },
+  "timestamps": {
+    "created_at": "2026-09-23T11:57:58.004059+02:00",
+    "updated_at": "2026-09-23T11:57:58.004059+02:00",
+    "valid_from": null,
+    "valid_until": null,
+    "valid_until_reason": null
+  },
+  "confidence": {
+    "score": 0.9,
+    "method": "model_based"
+  },
+  "policy": {
+    "risk_level": "low",
+    "decision_path": "auto_promote",
+    "requires_human_review": false,
+    "allowed_actions": [
+      "promote"
+    ],
+    "classification": null,
+    "recommended_action": null
+  },
+  "status": "promoted",
+  "supersedes_id": null,
+  "contradiction": null,
+  "review": null,
+  "audit": {
+    "decision_by": "governor",
+    "decision_at": null,
+    "decision_reason": "policy engine: auto_promote",
+    "reviewer": null
+  }
+}
