@@ -1,0 +1,64 @@
+{
+  "memory_id": "5f4b0b39-3ff6-48cf-9762-a3bad2fd9b74",
+  "owning_project": "mybizz-config-docs",
+  "agent_id": null,
+  "session_id": null,
+  "scope": {
+    "visibility": "shared_all",
+    "retention": "long_term",
+    "authority": null,
+    "owning_project": "mybizz-config-docs",
+    "shared_with": []
+  },
+  "memory_type": "fact",
+  "subject": null,
+  "content": {
+    "text": "---\ndocument: \"Fact — mb-doccycle is operational\"\ndoc-id: 2026-09-22-mb-doccycle-operational\nstate: Live\ndate-created: 2026-09-22\n---\n\n# Fact — mb-doccycle is operational (2026-09-22)\n\nThe merged documentation-management workflow **mb-doccycle** is\noperational as of 2026-09-22: work packages WP0–WP8 **accepted by the\ndeveloper**; the workflow skill is installed at\n`~/.config/opencode/skills/mb-doccycle/` (hash pair\n`a8336c843c79c900cf98afe0c54c2f69`); the three superseded skills\n(mb-docs-manager, mb-align-docs, mb-wikilinks) and their config-docs\nsuites are removed (39-file verified backup at\n`C:\\backup-mb-doccycle\\wp7-retirement-20260922T183427`); the WP8\nacceptance run (20260922T185208+0200, data-mybizz-mgt) passed end to end;\nthe configuration-management suite (mb-config-doccycle) is installed and\nrun #1 is HEALTHY. The canonical Phase-C detector stands at v0.1.1\n(29/29 tests) after the CY3-2 gate amendment.\n\nReferences to the three retired skills anywhere in the corpus are stale;\nmb-doccycle owns document management (register membership,\ncross-references, wikilinks). Context: session 014\n(`sessions/2026-09-22-014-mb-doccycle-wp2-wp8`). Confidence 1.0 (developer\nacceptance statement). Approved at the 2026-09-22 close-out gate.",
+    "structured": null
+  },
+  "provenance": {
+    "source_type": "user",
+    "source_ref": "/mnt/c/mybizz/mybizz-config-docs/facts/2026-09-22-mb-doccycle-operational.md",
+    "writer_identity": "manual_submission",
+    "derived_from": null,
+    "policy_version": "v1",
+    "lineage_hash": "7d8f132fdb8274a71dfaee328d30b50bd9f811faaac17ffd4ec52c5f2e483760"
+  },
+  "timestamps": {
+    "created_at": "2026-09-23T07:02:50.582183+02:00",
+    "updated_at": "2026-09-23T07:02:50.582183+02:00",
+    "valid_from": null,
+    "valid_until": null,
+    "valid_until_reason": null
+  },
+  "confidence": {
+    "score": 1.0,
+    "method": "human_verified"
+  },
+  "policy": {
+    "risk_level": "medium",
+    "decision_path": "needs_review",
+    "requires_human_review": true,
+    "allowed_actions": [
+      "promote",
+      "quarantine",
+      "reject"
+    ],
+    "classification": "scope_invalid",
+    "recommended_action": "quarantine"
+  },
+  "status": "promoted",
+  "supersedes_id": null,
+  "contradiction": null,
+  "review": {
+    "recommendation": "Policy engine flagged this fact candidate for human review (risk=medium). No automatic action taken.",
+    "validation": "risk_level=medium; confidence=1.0",
+    "ramifications": "No supersession or cross-project sharing effects"
+  },
+  "audit": {
+    "decision_by": "dev-p",
+    "decision_at": null,
+    "decision_reason": "approved at the 2026-09-22 close-out gate (session 014)",
+    "reviewer": "dev-p"
+  }
+}
