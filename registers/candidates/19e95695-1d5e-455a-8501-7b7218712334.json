@@ -1,0 +1,58 @@
+{
+  "memory_id": "19e95695-1d5e-455a-8501-7b7218712334",
+  "owning_project": "mybizz-config-docs",
+  "agent_id": null,
+  "session_id": null,
+  "scope": {
+    "visibility": "project_local",
+    "retention": "long_term",
+    "authority": null,
+    "owning_project": "mybizz-config-docs",
+    "shared_with": []
+  },
+  "memory_type": "fact",
+  "subject": null,
+  "content": {
+    "text": "---\ndocument: \"Fact — register field checks must scan every row mechanically\"\ndoc-id: 2026-09-23-whole-register-mechanical-scan\nstate: Live\ndate-created: 2026-09-23\n---\n\n# Fact — register field checks must scan every row mechanically\n\nSample-based register findings under-detect: 9 malformed date-registered\nrows were found by reading; a mechanical scan of ALL rows found 89 (the\n2026-09-11 truncated-batch repair block carried the same defect\nsystematically). Every register field-format conformance check must run a\nmechanical whole-register scan, never a sample. Repair pairs are generated\nbyte-exact from the file itself and uniqueness-verified before any write.\n\nContext: session 015 (`sessions/2026-09-23-015-mb-doccycle-makepdlf-first-cycle`),\n89-row repair verified to zero malformed across 249 rows. Confidence 1.0,\nmethod: mechanical scan vs read-based sampling, both run. Approved at the\n2026-09-23 close-out gate.\n",
+    "structured": null
+  },
+  "provenance": {
+    "source_type": "user",
+    "source_ref": "/mnt/c/mybizz/mybizz-config-docs/facts/2026-09-23-whole-register-mechanical-scan.md",
+    "writer_identity": "manual_submission",
+    "derived_from": null,
+    "policy_version": "v1",
+    "lineage_hash": "8b001c37d81bf2a7ce7da53eb6d816b378bcd749d9fcbbcb4b92d515f0a5f3f3"
+  },
+  "timestamps": {
+    "created_at": "2026-09-23T11:57:58.083667+02:00",
+    "updated_at": "2026-09-23T11:57:58.083667+02:00",
+    "valid_from": null,
+    "valid_until": null,
+    "valid_until_reason": null
+  },
+  "confidence": {
+    "score": 0.9,
+    "method": "model_based"
+  },
+  "policy": {
+    "risk_level": "low",
+    "decision_path": "auto_promote",
+    "requires_human_review": false,
+    "allowed_actions": [
+      "promote"
+    ],
+    "classification": null,
+    "recommended_action": null
+  },
+  "status": "promoted",
+  "supersedes_id": null,
+  "contradiction": null,
+  "review": null,
+  "audit": {
+    "decision_by": "governor",
+    "decision_at": null,
+    "decision_reason": "policy engine: auto_promote",
+    "reviewer": null
+  }
+}
