@@ -1,0 +1,64 @@
+{
+  "memory_id": "2d5c43ad-ad4b-43d2-aa47-9e49e789fe35",
+  "owning_project": "mybizz-config-docs",
+  "agent_id": null,
+  "session_id": null,
+  "scope": {
+    "visibility": "shared_all",
+    "retention": "long_term",
+    "authority": null,
+    "owning_project": "mybizz-config-docs",
+    "shared_with": []
+  },
+  "memory_type": "fact",
+  "subject": null,
+  "content": {
+    "text": "---\ndocument: \"Fact — es.exe -s is the search flag, not sort\"\ndoc-id: 2026-09-22-esexe-s-is-search\nstate: Live\ndate-created: 2026-09-22\n---\n\n# Fact — es.exe `-s` is the search flag, not sort\n\nIn es.exe (Everything CLI), `-s <text>` is the **search** flag: the text\nbecomes the search terms (e.g. `-s \"*.md\"` finds all markdown files). It\nis **not** a sort flag. The mb-doccycle run frame's file-search section\nmisdocumented it as \"-s sort by path\"; the error was found during the WP8\nacceptance run when a universe build passed a path-like value to `-s` and\nscoped the result set to one file. Two debugging rounds were spent on this\nbefore the flag's real semantics were proven by direct comparison of argv\nforms.\n\nThe run frame's flag table was healed 2026-09-22 (text-drift correction).\nCanonical scoped query form: `es.exe -p \"C:\\root\" -n 1000000 -s \"*.md\"`.\n\nContext: session 014, WP8 acceptance run + WP2 dry run. Confidence 0.95,\nmethod: live observation, both directions proven. Approved at the\n2026-09-22 close-out gate.",
+    "structured": null
+  },
+  "provenance": {
+    "source_type": "user",
+    "source_ref": "/mnt/c/mybizz/mybizz-config-docs/facts/2026-09-22-esexe-s-is-search.md",
+    "writer_identity": "manual_submission",
+    "derived_from": null,
+    "policy_version": "v1",
+    "lineage_hash": "ae85970afb20328b69929bc238805440f8b27b03b45eebd7f4b8fdcbf9ec0ab0"
+  },
+  "timestamps": {
+    "created_at": "2026-09-23T07:02:27.344776+02:00",
+    "updated_at": "2026-09-23T07:02:27.344776+02:00",
+    "valid_from": null,
+    "valid_until": null,
+    "valid_until_reason": null
+  },
+  "confidence": {
+    "score": 0.95,
+    "method": "rule_based"
+  },
+  "policy": {
+    "risk_level": "medium",
+    "decision_path": "needs_review",
+    "requires_human_review": true,
+    "allowed_actions": [
+      "promote",
+      "quarantine",
+      "reject"
+    ],
+    "classification": "scope_invalid",
+    "recommended_action": "quarantine"
+  },
+  "status": "promoted",
+  "supersedes_id": null,
+  "contradiction": null,
+  "review": {
+    "recommendation": "Policy engine flagged this fact candidate for human review (risk=medium). No automatic action taken.",
+    "validation": "risk_level=medium; confidence=0.95",
+    "ramifications": "No supersession or cross-project sharing effects"
+  },
+  "audit": {
+    "decision_by": "dev-p",
+    "decision_at": null,
+    "decision_reason": "approved at the 2026-09-22 close-out gate (session 014)",
+    "reviewer": "dev-p"
+  }
+}
