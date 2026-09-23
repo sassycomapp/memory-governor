@@ -1,0 +1,58 @@
+{
+  "memory_id": "100738e0-f842-4986-8fa3-e1c92b387df3",
+  "owning_project": "mybizz-config-docs",
+  "agent_id": null,
+  "session_id": null,
+  "scope": {
+    "visibility": "project_local",
+    "retention": "long_term",
+    "authority": null,
+    "owning_project": "mybizz-config-docs",
+    "shared_with": []
+  },
+  "memory_type": "fact",
+  "subject": null,
+  "content": {
+    "text": "---\ndocument: \"Fact — grant CLI syntax is flag-based\"\ndoc-id: 2026-09-23-grant-cli-flag-syntax\nstate: Live\ndate-created: 2026-09-23\n---\n\n# Fact — grant CLI syntax is flag-based\n\n`mg-grant` requires `--path <folder> --count <n>`; `git-grant` requires\n`--repo <folder> --count <n>` and accepts optional `--minutes <n>`\n(default 30). Positional argument forms exit 2 with \"unknown argument\"\nBEFORE any grant is written — a failed attempt consumes nothing. Both\nscripts live in `~/.config/cupcake/bin/`.\n\nThis supersedes the positional command form recorded in the WP8 run\nrecord; the commit-allowance rule's own documented syntax\n(`git-grant --repo <folder> --count N --minutes M`) is confirmed correct.\n\nContext: session 015 (`sessions/2026-09-23-015-mb-doccycle-makepdlf-first-cycle`),\nmakepdlf first full cycle. Confidence 1.0, method: script source read +\nthree live issuances. Approved at the 2026-09-23 close-out gate.\n",
+    "structured": null
+  },
+  "provenance": {
+    "source_type": "user",
+    "source_ref": "/mnt/c/mybizz/mybizz-config-docs/facts/2026-09-23-grant-cli-flag-syntax.md",
+    "writer_identity": "manual_submission",
+    "derived_from": null,
+    "policy_version": "v1",
+    "lineage_hash": "bc1c86c79338049d27677ca705bda7341666beb6651ff19a44c25bf168443c59"
+  },
+  "timestamps": {
+    "created_at": "2026-09-23T11:57:07.009290+02:00",
+    "updated_at": "2026-09-23T11:57:07.009290+02:00",
+    "valid_from": null,
+    "valid_until": null,
+    "valid_until_reason": null
+  },
+  "confidence": {
+    "score": 0.9,
+    "method": "model_based"
+  },
+  "policy": {
+    "risk_level": "low",
+    "decision_path": "auto_promote",
+    "requires_human_review": false,
+    "allowed_actions": [
+      "promote"
+    ],
+    "classification": null,
+    "recommended_action": null
+  },
+  "status": "promoted",
+  "supersedes_id": null,
+  "contradiction": null,
+  "review": null,
+  "audit": {
+    "decision_by": "governor",
+    "decision_at": null,
+    "decision_reason": "policy engine: auto_promote",
+    "reviewer": null
+  }
+}
