@@ -1,0 +1,64 @@
+{
+  "memory_id": "f758807f-47fb-4a66-b67e-1e89600b1211",
+  "owning_project": "mybizz-config-docs",
+  "agent_id": null,
+  "session_id": null,
+  "scope": {
+    "visibility": "shared_all",
+    "retention": "long_term",
+    "authority": null,
+    "owning_project": "mybizz-config-docs",
+    "shared_with": []
+  },
+  "memory_type": "fact",
+  "subject": null,
+  "content": {
+    "text": "---\ndocument: \"Fact — re-granting a path replaces the entry count\"\ndoc-id: 2026-09-22-regrant-replaces-count\nstate: Live\ndate-created: 2026-09-22\n---\n\n# Fact — re-granting a path replaces the entry count\n\nRe-running `mg-grant --path <folder> --count N` for an already-granted\npath updates the grant entry **in place**, replacing the count: a grant\nof N is **N total**, not N plus the residual count. Observed live three\ntimes during the mb-doccycle WP8 acceptance run (2026-09-22): the initial\ncount=3 decremented to 1; a supplementary grant of count=6 produced\ncount=6 (not 7); after six successful file edits the count hit 0 and the\nnext write denied; a further grant of count=3 restored it to 3 total.\n\nConsequence: size each collective slip block for the **whole remaining\ncycle** from the moment it is issued, or request a follow-up block when a\ncount is exceeded. The residual count never persists across a re-grant.\n\nContext: session 014 (`sessions/2026-09-22-014-mb-doccycle-wp2-wp8`),\nWP8 acceptance run. Confidence 0.9, method: live observation ×3. Approved\nat the 2026-09-22 close-out gate. Graduated into\n[[doccycle-reference|mb-doccycle Reference]] §Grant commands (2026-09-22).",
+    "structured": null
+  },
+  "provenance": {
+    "source_type": "user",
+    "source_ref": "/mnt/c/mybizz/mybizz-config-docs/facts/2026-09-22-regrant-replaces-count.md",
+    "writer_identity": "manual_submission",
+    "derived_from": null,
+    "policy_version": "v1",
+    "lineage_hash": "926cd6701b321961d5eda408ae76131d65a6a450420371a00a8790892b0a12a4"
+  },
+  "timestamps": {
+    "created_at": "2026-09-23T07:02:27.183473+02:00",
+    "updated_at": "2026-09-23T07:02:27.183473+02:00",
+    "valid_from": null,
+    "valid_until": null,
+    "valid_until_reason": null
+  },
+  "confidence": {
+    "score": 0.9,
+    "method": "rule_based"
+  },
+  "policy": {
+    "risk_level": "medium",
+    "decision_path": "needs_review",
+    "requires_human_review": true,
+    "allowed_actions": [
+      "promote",
+      "quarantine",
+      "reject"
+    ],
+    "classification": "scope_invalid",
+    "recommended_action": "quarantine"
+  },
+  "status": "promoted",
+  "supersedes_id": null,
+  "contradiction": null,
+  "review": {
+    "recommendation": "Policy engine flagged this fact candidate for human review (risk=medium). No automatic action taken.",
+    "validation": "risk_level=medium; confidence=0.9",
+    "ramifications": "No supersession or cross-project sharing effects"
+  },
+  "audit": {
+    "decision_by": "dev-p",
+    "decision_at": null,
+    "decision_reason": "approved at the 2026-09-22 close-out gate (session 014)",
+    "reviewer": "dev-p"
+  }
+}
