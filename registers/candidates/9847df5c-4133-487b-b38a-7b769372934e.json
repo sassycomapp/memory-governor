@@ -1,0 +1,58 @@
+{
+  "memory_id": "9847df5c-4133-487b-b38a-7b769372934e",
+  "owning_project": "diag-mg-sec4",
+  "agent_id": null,
+  "session_id": null,
+  "scope": {
+    "visibility": "project_local",
+    "retention": "permanent",
+    "authority": null,
+    "owning_project": "diag-mg-sec4",
+    "shared_with": []
+  },
+  "memory_type": "fact",
+  "subject": null,
+  "content": {
+    "text": "Memory diagnostic disposable candidate (section 4 positive path) - safe to delete.",
+    "structured": null
+  },
+  "provenance": {
+    "source_type": "agent_trace",
+    "source_ref": "memory-system-diagnostic-2026-09-28 section-4",
+    "writer_identity": "manual_submission",
+    "derived_from": null,
+    "policy_version": "v1",
+    "lineage_hash": "1c19af7cf509e113a3d8051b5c39b3fd6385d0a7710e2da6310d207cd2cb0543"
+  },
+  "timestamps": {
+    "created_at": "2026-09-28T09:53:06.703157+02:00",
+    "updated_at": "2026-09-28T09:53:06.703157+02:00",
+    "valid_from": null,
+    "valid_until": null,
+    "valid_until_reason": null
+  },
+  "confidence": {
+    "score": 0.9,
+    "method": "human_verified"
+  },
+  "policy": {
+    "risk_level": "low",
+    "decision_path": "auto_promote",
+    "requires_human_review": false,
+    "allowed_actions": [
+      "promote"
+    ],
+    "classification": null,
+    "recommended_action": null
+  },
+  "status": "promoted",
+  "supersedes_id": null,
+  "contradiction": null,
+  "review": null,
+  "audit": {
+    "decision_by": "governor",
+    "decision_at": null,
+    "decision_reason": "policy engine: auto_promote",
+    "reviewer": null
+  }
+}
