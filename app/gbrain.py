@@ -16,6 +16,7 @@ remains fully captured in registers/candidates/<id>.json (Phase 7) --
 this is a known, accepted gap in GBrain's own copy specifically, not a
 silent data-loss risk overall.
 """
+import os
 import subprocess
 
 from .models import GovernedMemoryCandidate
@@ -97,6 +98,8 @@ def remember_candidate(candidate: GovernedMemoryCandidate) -> str:
             "--entity", candidate.owning_project,
             "--visibility", visibility,
         ],
+        # the fact is written into the owning project's own source, whatever folder the worker runs in
+        env={**os.environ, "GBRAIN_SOURCE": candidate.owning_project},
         capture_output=True, text=True, check=True,
     )
     return result.stdout.strip()
