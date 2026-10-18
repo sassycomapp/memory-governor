@@ -1,0 +1,64 @@
+{
+  "memory_id": "ef8e27f5-91a6-4bd5-822b-cf22dfd38d34",
+  "owning_project": "mybizz-config-docs",
+  "agent_id": null,
+  "session_id": null,
+  "scope": {
+    "visibility": "shared_all",
+    "retention": "long_term",
+    "authority": null,
+    "owning_project": "mybizz-config-docs",
+    "shared_with": []
+  },
+  "memory_type": "fact",
+  "subject": null,
+  "content": {
+    "text": "---\ntitle: \"2026-09-16-gstack-artifact-location\"\ndoc-id: \"mb-3ba82a94\"\nupdated: \"2026-10-01\"\n---\n# Fact — GStack artifact location and the missing gstack-outputs lane\n\nGStack skills save all their output to a per-project directory under the user\nhome:\n\n    ~/.gstack/projects/$SLUG/\n\nwhere `$SLUG` is the deterministic per-repo project slug produced by\n`gstack-slug` (example, this config-docs repo: `sassycomapp-mybizz-config-docs`).\nLater skills find prior output by re-computing the same slug and reading the\nknown skill sub-directory (`ceo-plans/`, `designs/`, `retros/`, `qa-reports/`,\n`.context/`, etc.), plus `/context-restore` and project-keyed\n`learnings.jsonl` / `timeline.jsonl`.\n\nThe AGENTS.md `gstack-outputs/` repo-visible copy lane is a **convention only —\nit does not exist anywhere on this system**, except inside backup folders\n(out of scope). Verified 2026-09-16: no `gstack-outputs/` folder exists in any\nproject root; the earlier config claim \"confirmed live in\n`mb5pdlf-project-library`\" was falsified (folder absent there). Never rely on a\nrepo-side copy; `~/.gstack/projects/$SLUG/` is the sole authoritative artifact\nlocation.\n\nFull annotated record: [[[mybizz-config-docs:gstack/gstack-reference|GStack Reference]]](C:/mybizz/mybizz-config-docs/gstack/gstack-reference.md) §Artifact locations.\n",
+    "structured": null
+  },
+  "provenance": {
+    "source_type": "user",
+    "source_ref": "/mnt/c/mybizz/mybizz-config-docs/facts/2026-09-16-gstack-artifact-location.md",
+    "writer_identity": "manual_submission",
+    "derived_from": null,
+    "policy_version": "v1",
+    "lineage_hash": "56365fc51063b171aefee395fcac4226bc504f76fa953b9b8e2d882b8c636765"
+  },
+  "timestamps": {
+    "created_at": "2026-10-18T14:24:07.176934+02:00",
+    "updated_at": "2026-10-18T14:24:07.176934+02:00",
+    "valid_from": null,
+    "valid_until": null,
+    "valid_until_reason": null
+  },
+  "confidence": {
+    "score": 0.9,
+    "method": "model_based"
+  },
+  "policy": {
+    "risk_level": "medium",
+    "decision_path": "needs_review",
+    "requires_human_review": true,
+    "allowed_actions": [
+      "promote",
+      "quarantine",
+      "reject"
+    ],
+    "classification": "scope_invalid",
+    "recommended_action": "quarantine"
+  },
+  "status": "promoted",
+  "supersedes_id": null,
+  "contradiction": null,
+  "review": {
+    "recommendation": "Policy engine flagged this fact candidate for human review (risk=medium). No automatic action taken.",
+    "validation": "risk_level=medium; confidence=0.9",
+    "ramifications": "No supersession or cross-project sharing effects"
+  },
+  "audit": {
+    "decision_by": "dev-p",
+    "decision_at": null,
+    "decision_reason": "visibility fix approved 2026-10-18",
+    "reviewer": "dev-p"
+  }
+}
