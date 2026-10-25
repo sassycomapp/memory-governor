@@ -1,0 +1,62 @@
+{
+  "memory_id": "a155ba00-734c-45e0-8286-cf01c299f643",
+  "owning_project": "diag-pos-1025",
+  "agent_id": null,
+  "session_id": null,
+  "scope": {
+    "visibility": "project_local",
+    "retention": "permanent",
+    "authority": null,
+    "owning_project": "diag-pos-1025",
+    "shared_with": []
+  },
+  "memory_type": "fact",
+  "subject": {
+    "entity": "memory-system-diagnostic",
+    "predicate": "passed_positive_path_test",
+    "object": "2026-10-25"
+  },
+  "content": {
+    "text": "Diagnostic disposable fact: memory system positive-path test 2026-10-25 (safe to forget)",
+    "structured": null
+  },
+  "provenance": {
+    "source_type": "agent_trace",
+    "source_ref": "mb-memory-system-diagnostic/section4/2026-10-25",
+    "writer_identity": "manual_submission",
+    "derived_from": null,
+    "policy_version": "1.0.0-diagnostic",
+    "lineage_hash": "c0cad6e0fd2d1d4b35477dbf5ab9e924cc4b536e5731c8cf262bb1a2b3202245"
+  },
+  "timestamps": {
+    "created_at": "2026-10-25T11:22:44.316491+02:00",
+    "updated_at": "2026-10-25T11:22:44.316491+02:00",
+    "valid_from": null,
+    "valid_until": null,
+    "valid_until_reason": null
+  },
+  "confidence": {
+    "score": 0.9,
+    "method": "rule_based"
+  },
+  "policy": {
+    "risk_level": "low",
+    "decision_path": "auto_promote",
+    "requires_human_review": false,
+    "allowed_actions": [
+      "promote"
+    ],
+    "classification": null,
+    "recommended_action": null
+  },
+  "status": "promoted",
+  "supersedes_id": null,
+  "contradiction": null,
+  "review": null,
+  "audit": {
+    "decision_by": "governor",
+    "decision_at": null,
+    "decision_reason": "policy engine: auto_promote",
+    "reviewer": null
+  }
+}
