@@ -1,0 +1,58 @@
+{
+  "memory_id": "4dc3f78f-0bef-4ac2-ab38-39f57d8264ee",
+  "owning_project": "mb-3-cs-project-library",
+  "agent_id": null,
+  "session_id": null,
+  "scope": {
+    "visibility": "project_local",
+    "retention": "long_term",
+    "authority": null,
+    "owning_project": "mb-3-cs-project-library",
+    "shared_with": []
+  },
+  "memory_type": "fact",
+  "subject": null,
+  "content": {
+    "text": "---\ntitle: \"2026-11-17-anvil-editor-force-push-git-reconciliation\"\ndoc-id: \"mb-f6a2984f\"\nupdated: \"2026-11-17\"\n---\n# Anvil editor git commits force-push: reconcile a divergent pull\n\nThe Anvil editor's own commit force-pushes rewritten history to the app repository. After work done in the Anvil editor, a plain `git pull` in the app repository fails with \"divergent branches\" because Anvil's force update replaced the remote's commits. When the local branch holds no unique commits (its head was the replaced commit) and the working tree has only uncommitted changes, reconcile with exactly: `git stash push -m <label> <changed tracked files>`, then `git reset --hard origin/master`, then `git stash pop`. Untracked files are untouched by the reset; the stash preserves tracked modifications across it. Never reset while local holds unique commits — check `git log --oneline HEAD..origin/master` and `git log --oneline origin/master..HEAD` first. Set by the Step 17 close-out of mb-3-cs run app1, 2026-11-17.\n",
+    "structured": null
+  },
+  "provenance": {
+    "source_type": "user",
+    "source_ref": "/mnt/c/mybizz/mybizz-config-docs/facts/2026-11-17-anvil-editor-force-push-git-reconciliation.md",
+    "writer_identity": "manual_submission",
+    "derived_from": null,
+    "policy_version": "v1",
+    "lineage_hash": "e81c84cb78bc0c02711e5404077333c47445fbc176598fd4501a38b10531f9b7"
+  },
+  "timestamps": {
+    "created_at": "2026-11-17T14:51:04.586880+02:00",
+    "updated_at": "2026-11-17T14:51:04.586880+02:00",
+    "valid_from": null,
+    "valid_until": null,
+    "valid_until_reason": null
+  },
+  "confidence": {
+    "score": 0.88,
+    "method": "model_based"
+  },
+  "policy": {
+    "risk_level": "low",
+    "decision_path": "auto_promote",
+    "requires_human_review": false,
+    "allowed_actions": [
+      "promote"
+    ],
+    "classification": null,
+    "recommended_action": null
+  },
+  "status": "promoted",
+  "supersedes_id": null,
+  "contradiction": null,
+  "review": null,
+  "audit": {
+    "decision_by": "governor",
+    "decision_at": null,
+    "decision_reason": "policy engine: auto_promote",
+    "reviewer": null
+  }
+}
